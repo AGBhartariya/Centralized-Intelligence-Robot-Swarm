@@ -1,0 +1,6 @@
+# Request
+string task_description
+string robot_id
+---
+# Response
+float32 cost

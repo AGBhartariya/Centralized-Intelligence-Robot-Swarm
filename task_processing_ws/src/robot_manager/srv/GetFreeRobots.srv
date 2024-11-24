@@ -1,0 +1,5 @@
+# Request
+---
+# Response
+int32 free_robot_count
+string[] robot_ids
