@@ -26,6 +26,8 @@ pioneer_ws/src/CMakeLists.txt
 #patrolling_ws/src/msgs/brics_actuator
 jackal_ws/src/CMakeLists.txt
 teb_ws/src/CMakeLists.txt
+task_processing_ws/src/CMakeLists.txt
+robot_perception_ws/src/CMakeLists.txt
 
 models.gazebosim.org
 

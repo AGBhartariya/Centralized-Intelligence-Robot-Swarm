@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import rospy
-from task_manager.msg import Task
+from robot_manager.msg import Task
 import random
 
 def task_publisher():

@@ -13,6 +13,11 @@ add_service_files(
   GetTaskCost.srv
 )
 
+add_message_files(
+  FILES
+  Task.msg
+)
+
 generate_messages(
   DEPENDENCIES
   std_msgs

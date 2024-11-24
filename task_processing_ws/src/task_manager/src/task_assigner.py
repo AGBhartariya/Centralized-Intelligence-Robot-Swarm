@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import rospy
-from task_manager.msg import Task
+from robot_manager.msg import Task
 from robot_manager.srv import GetFreeRobots, GetTaskCost
 from task_data_services.srv import QueryTaskData
 import heapq

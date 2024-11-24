@@ -1,5 +1,5 @@
 # Request
-string task
+robot_manager/Task task
 ---
 # Response
 string metadata
