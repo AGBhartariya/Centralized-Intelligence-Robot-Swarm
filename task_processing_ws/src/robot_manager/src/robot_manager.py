@@ -16,7 +16,7 @@ class RobotManager:
         return {'free_robot_count': len(self.free_robots), 'robot_ids': self.free_robots}
 
     def handle_get_task_cost(self, req):
-        task_desc = req.task_description
+        task_desc = req.task
         robot_id = req.robot_id
         return {'cost': len(task_desc) + len(robot_id)}  # Example cost function
 

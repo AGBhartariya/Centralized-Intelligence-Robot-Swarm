@@ -21,8 +21,8 @@ class TaskDataServer:
         self.service = rospy.Service('QueryTaskData', QueryTaskData, self.handle_query)
 
     def handle_query(self, req):
-        rospy.loginfo(f"Received query for task: {req.task_description}")
-        metadata = self.task_data.get(req.task_description, "No data available")
+        rospy.loginfo(f"Received query for task: {req.task}")
+        metadata = self.task_data.get(req.task, "No data available")
         return QueryTaskDataResponse(metadata=metadata)
 
 if __name__ == "__main__":

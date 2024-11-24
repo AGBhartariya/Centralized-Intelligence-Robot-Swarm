@@ -1,5 +1,5 @@
 # Request
-string task_description
+string task
 ---
 # Response
 string metadata

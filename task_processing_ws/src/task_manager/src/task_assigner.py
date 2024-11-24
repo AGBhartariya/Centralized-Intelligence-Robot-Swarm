@@ -40,7 +40,7 @@ def assign_tasks():
             costs = []
             for robot_id in free_robot_ids:
                 task_cost_client = rospy.ServiceProxy('/robot_manager/GetTaskCost', GetTaskCost)
-                cost = task_cost_client(task_description=current_task.description, robot_id=robot_id).cost
+                cost = task_cost_client(task=current_task.description, robot_id=robot_id).cost
                 costs.append((cost, robot_id))
 
             # Assign the task to the robot with the least cost
