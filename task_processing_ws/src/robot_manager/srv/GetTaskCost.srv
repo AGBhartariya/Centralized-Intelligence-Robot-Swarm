@@ -1,5 +1,6 @@
 # Request
-Task task
+int32[] description
+int32[] locations
 int32 robot_id
 ---
 # Response

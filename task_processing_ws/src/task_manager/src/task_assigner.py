@@ -7,16 +7,68 @@ from task_data_services.srv import QueryTaskData
 import heapq
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+import time
+import json  # For serializing task description arrays
 
-# Priority queue to store tasks as (priority, task_description) tuples
-priority_queue = []
+# Priority queue and a dictionary to track task timestamps
+priority_queue = []  # Stores (priority, task) tuples
+task_timestamps = {}  # Maps task description to timestamp
+
+
+def serialize_task_description(description):
+    """Serializes the task description (array) into a string."""
+    return json.dumps(description)
+
+
+def deserialize_task_description(serialized_description):
+    """Deserializes the task description string back into an array."""
+    return json.loads(serialized_description)
+
 
 def task_callback(task):
-    # Push the task into the priority queue
+    # Serialize task description for consistent storage and logging
+    serialized_description = serialize_task_description(task.description)
+
+    # Add the task to the priority queue and record its timestamp
     heapq.heappush(priority_queue, (task.priority, task))
+    task_timestamps[serialized_description] = time.time()
+
+
+def increment_task_priorities():
+    """Periodically increments the priorities of unassigned tasks."""
+    k = rospy.get_param('/task_reassignment_interval', 10)  # Time interval in minutes
+    n = rospy.get_param('/task_priority_increment', 1)      # Priority increment amount
+    current_time = time.time()
+
+    # Convert `k` to seconds
+    k_seconds = k * 60
+
+    updated_tasks = []
+    while priority_queue:
+        priority, task = heapq.heappop(priority_queue)
+        serialized_description = serialize_task_description(task.description)
+        timestamp = task_timestamps[serialized_description]
+
+        # Check if the task has exceeded the `k`-minute threshold
+        if current_time - timestamp >= k_seconds:
+            rospy.loginfo(f"Incrementing priority for task '{task.description}' by {n}.")
+            priority -= n  # Lower priority value means higher priority
+            task_timestamps[serialized_description] = current_time  # Update timestamp
+
+        # Reinsert the task into the queue with updated priority
+        updated_tasks.append((priority, task))
+
+    # Rebuild the priority queue with updated priorities
+    for priority, task in updated_tasks:
+        heapq.heappush(priority_queue, (priority, task))
+
 
 def assign_tasks():
+    rate = rospy.Rate(1)  # 1 Hz loop rate for periodic updates
     while not rospy.is_shutdown():
+        # Increment task priorities at regular intervals
+        increment_task_priorities()
+
         if not priority_queue:
             rospy.sleep(1)
             continue
@@ -57,15 +109,19 @@ def assign_tasks():
 
         try:
             for i, task in enumerate(tasks):
+                # Serialize task description for service calls
+                data = task.description
+
                 # Get metadata for the task
                 metadata_client = rospy.ServiceProxy('/task_data_service/QueryTaskData', QueryTaskData)
-                metadata = metadata_client(task.description).metadata
+                object_locations = metadata_client(data).locations
 
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
                     task_cost_client = rospy.ServiceProxy('/robot_manager/GetTaskCost', GetTaskCost)
-                    cost = task_cost_client(task=task.description, robot_id=robot_id).cost
+                    cost = task_cost_client(description=data, location=object_locations, robot_id=robot_id).cost
                     cost_matrix[i, j] = cost
+
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed during cost calculation: {e}")
             # Re-queue tasks in case of a failure
@@ -89,6 +145,9 @@ def assign_tasks():
         for i in range(num_tasks):
             if i not in task_indices:
                 heapq.heappush(priority_queue, (tasks[i].priority, tasks[i]))
+
+        rate.sleep()
+
 
 if __name__ == "__main__":
     rospy.init_node('task_assigner')

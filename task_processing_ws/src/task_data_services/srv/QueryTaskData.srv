@@ -1,5 +1,5 @@
 # Request
-robot_manager/Task task
+int32[] description
 ---
 # Response
-string metadata
+int32[] locations
