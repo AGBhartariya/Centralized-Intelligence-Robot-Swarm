@@ -7,4 +7,4 @@ x1 : Task type, x2 : Task object, x3 : Task Location
 
     *x1 = 1 : Bring object of type x2 to location x3*
     *x1 = 2 : Interact/Inspect object of type x2 at location x3*
-    
+    *x1 = 3 : Move object of type x2 from x3 to x4* (special case)

@@ -2,7 +2,7 @@
 
 import rospy
 import yaml
-from task_data_services.srv import QueryTaskData, QueryTaskDataResponse
+from task_data_services.srv import QueryObjectLocations, QueryObjectLocationsResponse
 
 class TaskDataServer:
     def __init__(self):
@@ -18,12 +18,12 @@ class TaskDataServer:
             rospy.signal_shutdown("Could not load task data.")
         
         # Initialize the service
-        self.service = rospy.Service('QueryTaskData', QueryTaskData, self.handle_query)
+        self.service = rospy.Service('QueryTaskData', QueryObjectLocations, self.handle_query)
 
     def handle_query(self, req):
         rospy.loginfo(f"Received query for task: {req.task}")
         metadata = self.task_data.get(req.task, "No data available")
-        return QueryTaskDataResponse(metadata=metadata)
+        return QueryObjectLocationsResponse(metadata=metadata)
 
 if __name__ == "__main__":
     rospy.init_node('task_data_server')

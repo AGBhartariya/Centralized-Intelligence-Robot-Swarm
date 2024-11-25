@@ -1,6 +1,6 @@
 # Request
 int32[] description
-int32[] locations
+geometry_msgs/PoseStamped[] locations
 int32 robot_id
 ---
 # Response

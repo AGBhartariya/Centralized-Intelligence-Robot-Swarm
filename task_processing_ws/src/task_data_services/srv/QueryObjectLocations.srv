@@ -1,0 +1,5 @@
+# Request
+int32 objectType
+---
+# Response
+geometry_msgs/PoseStamped[] locations

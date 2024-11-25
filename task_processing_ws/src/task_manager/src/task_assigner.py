@@ -3,7 +3,7 @@
 import rospy
 from robot_manager.msg import Task
 from robot_manager.srv import GetFreeRobots, GetTaskCost
-from task_data_services.srv import QueryTaskData
+from task_data_services.srv import QueryObjectLocations
 import heapq
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -102,25 +102,29 @@ def assign_tasks():
             rospy.sleep(1)
             continue
 
-        # Create a cost matrix
+        # Create a cost matrix and store object locations
         num_tasks = len(tasks)
         num_robots = len(free_robot_ids)
         cost_matrix = np.full((num_tasks, num_robots), np.inf)
+        task_object_locations = [[None for _ in range(num_robots)] for _ in range(num_tasks)]
 
         try:
             for i, task in enumerate(tasks):
-                # Serialize task description for service calls
                 data = task.description
 
                 # Get metadata for the task
-                metadata_client = rospy.ServiceProxy('/task_data_service/QueryTaskData', QueryTaskData)
-                object_locations = metadata_client(data).locations
+                object_locations_client = rospy.ServiceProxy('/task_data_service/QueryTaskData', QueryObjectLocations)
+                object_locations = object_locations_client(data).locations
 
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
                     task_cost_client = rospy.ServiceProxy('/robot_manager/GetTaskCost', GetTaskCost)
-                    cost = task_cost_client(description=data, location=object_locations, robot_id=robot_id).cost
+                    response = task_cost_client(description=data, robot_id=robot_id, locations = object_locations)
+                    cost = response.cost
+                    object_location = response.object_location  # PoseStamped
+
                     cost_matrix[i, j] = cost
+                    task_object_locations[i][j] = object_location
 
         except rospy.ServiceException as e:
             rospy.logerr(f"Service call failed during cost calculation: {e}")
@@ -137,7 +141,8 @@ def assign_tasks():
             if cost_matrix[task_idx, robot_idx] < np.inf:
                 task = tasks[task_idx]
                 robot_id = free_robot_ids[robot_idx]
-                rospy.loginfo(f"Assigned task '{task.description}' to robot {robot_id}")
+                assigned_location = task_object_locations[task_idx][robot_idx]
+                rospy.loginfo(f"Assigned task '{task.description}' to robot {robot_id} at location {assigned_location}.")
             else:
                 rospy.loginfo("No valid assignment found for some tasks.")
 
