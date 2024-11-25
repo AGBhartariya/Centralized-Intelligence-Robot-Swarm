@@ -29,7 +29,7 @@ class RobotManager:
         cost = np.inf
         obj_loc = None
         for location in objectlocations:
-            temp = computeCost(location, tasklocations, robot_id, task_desc)
+            temp = self.computeCost(location, tasklocations, robot_id, task_desc)
             if temp < cost:
                 cost = temp
                 obj_loc = location
