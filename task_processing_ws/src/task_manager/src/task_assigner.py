@@ -111,15 +111,15 @@ def assign_tasks():
         try:
             for i, task in enumerate(tasks):
                 data = task.description
-
+                task_locations = task.locations
                 # Get metadata for the task
                 object_locations_client = rospy.ServiceProxy('/task_data_service/QueryTaskData', QueryObjectLocations)
-                object_locations = object_locations_client(data).locations
+                object_locations = object_locations_client(data[1]).locations
 
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
                     task_cost_client = rospy.ServiceProxy('/robot_manager/GetTaskCost', GetTaskCost)
-                    response = task_cost_client(description=data, robot_id=robot_id, locations = object_locations)
+                    response = task_cost_client(task_type=data[0], robot_id=robot_id, objectlocations = object_locations, tasklocations = task_locations)
                     cost = response.cost
                     object_location = response.object_location  # PoseStamped
 

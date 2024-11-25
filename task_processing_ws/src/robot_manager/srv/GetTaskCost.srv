@@ -1,7 +1,9 @@
 # Request
-int32[] description
-geometry_msgs/PoseStamped[] locations
+int32 task_type
+geometry_msgs/PoseStamped[] objectlocations
+geometry_msgs/PoseStamped[] tasklocations
 int32 robot_id
 ---
 # Response
 float32 cost
+geometry_msgs/PoseStamped object_location

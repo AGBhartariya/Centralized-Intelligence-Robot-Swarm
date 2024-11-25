@@ -21,19 +21,20 @@ class RobotManager:
         return None
     
     def handle_get_task_cost(self, req):
-        task_desc = req.description
+        task_desc = req.task_type #category of task i.e x1
         robot_id = req.robot_id
-        locations = req.locations #poses of all objects of type x2
+        objectlocations = req.objectlocations #poses of all objects of type x2
+        tasklocations = req.tasklocations #poses of where the task to be done i.e x3 and x4 (if given)
 
         cost = np.inf
         obj_loc = None
-        for location in locations:
-            temp = computeCost(location, robot_id, task_desc)
+        for location in objectlocations:
+            temp = computeCost(location, tasklocations, robot_id, task_desc)
             if temp < cost:
                 cost = temp
                 obj_loc = location
         
-        return {'cost': cost}  # Example cost function
+        return {'cost': cost, 'object_location': obj_loc}  # Example cost function
 
     
 if __name__ == '__main__':
