@@ -4,7 +4,7 @@
     <arg name="robot_base_name" default="ugv" />
 
     <arg name="world_name" default="jackal_baylands.world"/>  <!-- one of the worlds that are contained in the folder $(find jackal_3dmain)/worlds/ -->
-    <arg name="num_robots" default="2" />
+    <arg name="num_robots" default="3" />
     <arg name="use_rviz" default="true"/>  
 
     <!-- select only one among OS0, OS1, VPL16-->  
@@ -21,6 +21,8 @@
     <arg name="x2" default="2" />
     <arg name="y2" default="0" />
 
+    <arg name="x3" default="0" />
+    <arg name="y3" default="2" />
 
     <include file="$(find jackal_3dmain)/launch/jackal_multi.launch">
         <arg name="robot_name" value="$(arg robot_base_name)1"/>          
@@ -49,6 +51,25 @@
 
         <arg name="x" value="$(arg x2)" />
         <arg name="y" value="$(arg y2)" />
+
+        <arg name="OS0" value="$(arg OS0)"/>     
+        <arg name="OS1" value="$(arg OS1)"/> 
+        <arg name="VLP16" value="$(arg VLP16)"/> 
+        <arg name="imuRate" value="$(arg imuRate)"/> 
+        <arg name="cameraRate" value="$(arg cameraRate)"/>
+        <arg name="organize_cloud" value="$(arg organize_cloud)"/>                 
+
+        <arg name="use_rviz" value="false"/>                                                                       
+    </include> 
+
+    <include file="$(find jackal_3dmain)/launch/jackal_multi.launch"
+        if="$(eval arg('num_robots') >= 3)">
+        <arg name="robot_name" value="$(arg robot_base_name)3"/>          
+        <arg name="robot_topic_prefix" value=""/>    <!-- no prefix-->     <!-- prefix for topics, must be with final slash -->
+        <arg name="robot_frame_prefix" value="$(arg robot_base_name)3/"/>  <!-- prefix for frames, must be with final slash -->   
+
+        <arg name="x" value="$(arg x3)" />
+        <arg name="y" value="$(arg y3)" />
 
         <arg name="OS0" value="$(arg OS0)"/>     
         <arg name="OS1" value="$(arg OS1)"/> 

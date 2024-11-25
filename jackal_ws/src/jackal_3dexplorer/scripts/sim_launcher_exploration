@@ -27,7 +27,7 @@ export LAUNCH_EXPLORATION_AUTO=1 # for starting automatically the exploration mi
 # select the world for the exploration simulation: specify here the world name you want
 WORLD_NAME="jackal_race.world"
 
-export NUM_ROBOTS=2
+export NUM_ROBOTS=4
 echo "NUM_ROBOTS: $NUM_ROBOTS"  
 
 export ENABLE_MULTI_ROBOT_COORDINATION="true" # true or false  enable/disable multi-robot coordination on path-planning level
@@ -137,7 +137,7 @@ fi
 
 if [ $LAUNCH_GAZEBO -eq 1 ]; then
     echo "launching gazebo"
-    export ROBOT_INITIAL_POSITION_OPTIONS="x1:=2 y1:=-1 x2:=4 y2:=0"
+    export ROBOT_INITIAL_POSITION_OPTIONS="x1:=2 y1:=-1 x2:=4 y2:=0 x3:=6 y3:=1"
 
     open_term GAZEBOMAIN "echo gazebo main; roslaunch jackal_3dmain gazebo.launch world_name:=$WORLD_NAME gui:=$LAUNCH_GAZEBO_MODE; bash" &
     rosrun jackal_3dmain wait_for_gazebo.sh
