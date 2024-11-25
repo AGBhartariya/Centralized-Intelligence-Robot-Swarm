@@ -16,7 +16,7 @@ class RobotManager:
     def handle_get_free_robots(self, req):
         return {'free_robot_count': len(self.free_robots), 'robot_ids': self.free_robots}
 
-    def computeCost(location, robot_id, task_desc):
+    def computeCost(self, location, robot_id, task_desc):
         # TODO : implement cost function for all scenarios
         return None
     
