@@ -21,3 +21,5 @@ Where:
 - **x1 = 2**: **Interact/Inspect object of type x2 at location x3**.
   
 - **x1 = 3**: **Move object of type x2 from location x3 to x4** (special case).
+
+- **x1 = 4**: **Find object of type x2** (special case of type 2).
