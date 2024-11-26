@@ -1,0 +1,57 @@
+<launch>
+  <!-- Author: Luigi Freda -->
+
+  <arg name="world_name" default="jackal_race.world" />
+  <arg name="num_robots" default="3" />
+  <arg name="enable_multi_robot_coordination" default="true" />
+  <arg name="max_sim_time" default="" />
+
+  <!-- Gazebo launch parameters -->
+  <arg name="launch_gazebo" value="true" />
+  <arg name="launch_gazebo_mode" value="true" />
+
+  <!-- Exploration parameters -->
+  <arg name="enable_exploration" value="true" />
+  <arg name="enable_expl_pointcloud_filter" value="false" />
+  <arg name="enable_organized_point_cloud" value="false" />
+
+  <!-- World Selection -->
+  <param name="world_name" value="$(arg world_name)" />
+
+  <!-- Spawn robots in Gazebo -->
+  <group if="$(arg launch_gazebo)">
+    <node pkg="gazebo_ros" type="gzserver" name="gazebo" args="--verbose -s libgazebo_ros_factory.so $(find jackal_3dmain)/worlds/$(arg world_name)" output="screen" />
+
+    <node pkg="gazebo_ros" type="gzclient" name="gazebo_gui" if="$(arg launch_gazebo_mode)" output="screen" />
+
+    <node pkg="jackal_3dmain" type="jackal_ugvs.launch" name="spawn_robots"
+          args="num_robots:=$(arg num_robots)" output="screen" />
+  </group>
+
+  <!-- RViz for visualization -->
+  <node pkg="rviz" type="rviz" name="rviz" args="-d $(find jackal_3dnav)/rviz_configs/path_planning.rviz" output="screen" />
+
+  <!-- TF statics -->
+  <node pkg="jackal_3dnav" type="tf_statics.launch" name="tf_statics" output="screen" />
+
+  <!-- Exploration nodes for each robot -->
+  <group>
+    <foreach var="robot_id" value="$(arg num_robots)">
+      <node pkg="jackal_3dexplorer" type="sim_launcher_exploration_ugv" name="exploration_$(var robot_id)"
+            args="$(var robot_id) $(arg enable_multi_robot_coordination) $(arg enable_exploration) $(arg enable_expl_pointcloud_filter)" 
+            output="screen" />
+    </foreach>
+  </group>
+
+  <!-- Automatic exploration start -->
+  <group if="$(arg enable_exploration)">
+    <node pkg="rostopic" type="pub" name="start_exploration" 
+          args="/expl_pause_topic std_msgs/Bool 'data: false'" output="screen" />
+  </group>
+
+  <!-- Simulation termination after max_sim_time -->
+  <group if="$(arg max_sim_time)">
+    <node pkg="roslaunch" type="shutdown" name="shutdown_simulation" args="$(arg max_sim_time)" output="screen" />
+  </group>
+
+</launch>

@@ -1,0 +1,59 @@
+<launch>
+  <!-- Author: Luigi Freda -->
+
+  <arg name="robot_id" />
+  <arg name="enable_multi_robot_traversability" default="true" />
+  <arg name="enable_exploration_agent" default="true" />
+  <arg name="enable_exploration_pcl_filter" default="true" />
+  <arg name="enable_battery" default="false" />
+
+  <!-- Environment variables -->
+  <env name="MR3D_HOME" value="$(env MR3D_HOME)" />
+
+  <!-- Check for MR3D_HOME -->
+  <group if="$(not env MR3D_HOME)">
+    <node pkg="roslaunch" type="exit_code" name="exit_code" args="MR3D_HOME not set" />
+  </group>
+
+  <!-- Robot-specific parameters -->
+  <param name="robot_name" value="ugv$(arg robot_id)" />
+  <param name="log_folder" value="$(find jackal_3dexplorer)/logs" />
+  <param name="suffix" value="$(arg robot_id)_$(eval time.now())" />
+
+  <param name="file_log_path_planning" value="$(param log_folder)/log_path_planning$(param suffix).log" />
+  <param name="file_log_exploration_agent" value="$(param log_folder)/log_exploration_agent$(param suffix).log" />
+
+  <!-- Logging setup -->
+  <param name="enable_logging_exploration_agent" value="false" />
+
+  <!-- Multi-robot coordination -->
+  <param name="enable_multi_robot_coordination" value="$(arg enable_multi_robot_traversability)" />
+
+  <!-- Exploration agent -->
+  <param name="enable_exploration" value="$(arg enable_exploration_agent)" />
+  <param name="enable_expl_pointcloud_filter" value="$(arg enable_exploration_pcl_filter)" />
+  <param name="enable_battery" value="$(arg enable_battery)" />
+
+  <!-- Launch UGV path planner -->
+  <node pkg="jackal_3dnav" type="sim_launcher_ugv" name="path_planner"
+        args="$(arg robot_id) $(param enable_multi_robot_coordination)" output="screen" />
+
+  <!-- Pointcloud filter for exploration -->
+  <group if="$(param enable_expl_pointcloud_filter)">
+    <node pkg="expl_pointcloud_filter" type="sim_expl_pointcloud_filter_jackal_ugv.launch" name="expl_pointcloud_filter"
+          args="robot_name:=$(param robot_name)" output="screen" />
+    <param name="expl_cloud_option" value="robot_point_cloud_base_topic:=expl_point_cloud verticalFov:=180.0 sensor_max_range:=3.0 expl_step:=3.0" />
+  </group>
+
+  <!-- Exploration planner -->
+  <group if="$(param enable_exploration)">
+    <group if="$(param enable_logging_exploration_agent)">
+      <node pkg="jackal_3dexplorer" type="sim_expl_planner_ugv2.launch" name="expl_planner"
+            args="robot_name:=$(param robot_name) $(param expl_cloud_option) battery:=$(param enable_battery) &> $(param file_log_exploration_agent)" output="screen" />
+    </group>
+    <group if="$(not param enable_logging_exploration_agent)">
+      <node pkg="jackal_3dexplorer" type="sim_expl_planner_ugv2.launch" name="expl_planner"
+            args="robot_name:=$(param robot_name) $(param expl_cloud_option) battery:=$(param enable_battery)" output="screen" />
+    </group>
+  </group>
+</launch>

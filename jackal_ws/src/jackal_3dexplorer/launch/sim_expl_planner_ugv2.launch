@@ -5,7 +5,7 @@
     <arg name="robot_name" default="ugv2" />
     <arg name="simulator" default="" />
 
-    <arg name="number_of_robots" default="2" /> <!-- multi -->    
+    <arg name="number_of_robots" default="3" /> <!-- multi -->    
     <arg name="robot_point_cloud_base_topic" default="filtered_pointcloud" />   
     <arg name="param_file" default="$(find jackal_3dexplorer)/launch/exploration.yaml" />
 
