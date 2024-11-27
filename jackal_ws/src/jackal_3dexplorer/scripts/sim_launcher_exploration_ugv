@@ -41,6 +41,7 @@ if [ -z $ENABLE_BATTERY ] || [ $ENABLE_BATTERY = false ]; then
     ENABLE_BATTERY="false"
 fi
 
+NUM_ROBOTS=$5
 ########################################################################################################
 
 # check environment variables 
@@ -99,10 +100,10 @@ if [ $ENABLE_EXPL_AGENT -eq 1 ]; then
 
     if [ $ENABLE_LOGGING_EXPL_AGENT -eq 1 ]; then
             echo "jackal_expl ugv$ROBOT_ID"
-            open_term "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY &> $FILE_LOG_EXPLORATION_AGENT; bash" &
+            open_term "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY number_of_robots:=$NUM_ROBOTS &> $FILE_LOG_EXPLORATION_AGENT; bash" &
     else
             echo "jackal_expl ugv$ROBOT_ID"
-            open_term "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY; bash" &
+            open_term "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY number_of_robots:=$NUM_ROBOTS ; bash" &
     fi
 fi
 

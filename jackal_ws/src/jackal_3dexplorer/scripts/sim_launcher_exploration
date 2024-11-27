@@ -13,7 +13,7 @@ echo "usage: ./${0##*/} <world-name> <num-robots> <enable-muti-robot-traversabil
 
 
 export LAUNCH_GAZEBO=1      # 1 automatic launch of GAZEBO, 0 no automatic launch
-export LAUNCH_GAZEBO_MODE=1 # 0 launch GAZEBO in headless mode 
+export LAUNCH_GAZEBO_MODE=0 # 0 launch GAZEBO in headless mode 
 	                          # 1 launch GAZEBO in normal mode 
 	               
 export LAUNCH_EXPLORATION_AUTO=1 # for starting automatically the exploration mission (instead of starting by using the GUI)	               
@@ -162,7 +162,7 @@ sleep 1
 #- EXPLORATION PLANNERS
 
 for i in `seq 1 $NUM_ROBOTS`; do
-	rosrun jackal_3dexplorer sim_launcher_exploration_ugv $i $ENABLE_MULTI_ROBOT_COORDINATION $ENABLE_EXPLORATION $ENABLE_EXPL_POINTCLOUD_FILTER
+	rosrun jackal_3dexplorer sim_launcher_exploration_ugv $i $ENABLE_MULTI_ROBOT_COORDINATION $ENABLE_EXPLORATION $ENABLE_EXPL_POINTCLOUD_FILTER $NUM_ROBOTS
 done  
 
 ######################################################################################################## 
