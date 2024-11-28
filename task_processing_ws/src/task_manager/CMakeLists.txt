@@ -12,6 +12,12 @@ catkin_package(
   CATKIN_DEPENDS rospy std_msgs message_runtime robot_manager task_data_services
 )
 
+catkin_install_python(PROGRAMS
+  src/task_assigner.py
+  src/task_publisher.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )

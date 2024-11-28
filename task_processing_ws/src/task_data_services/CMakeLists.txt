@@ -23,6 +23,11 @@ catkin_package(
   CATKIN_DEPENDS rospy std_msgs message_runtime geometry_msgs
 )
 
+catkin_install_python(PROGRAMS
+  src/task_data_server.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )

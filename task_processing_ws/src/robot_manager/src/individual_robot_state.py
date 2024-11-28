@@ -4,7 +4,7 @@ import rospy
 from std_msgs.msg import Bool
 from robot_manager.srv import GetState, GetStateResponse
 from robot_manager.msg import Task
-import time
+from geometry_msgs.msg import Twist
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
@@ -30,6 +30,9 @@ class RobotStateNode:
 
         # Publisher to indicate exploration status
         self.expl_marker_pub = rospy.Publisher(f"/{self.namespace}/expl_marker_update/update", Bool, queue_size=1)
+
+        # Publisher to stop the robot when charging (sending zero velocity)
+        self.cmd_vel_pub = rospy.Publisher(f"/{self.namespace}/battery/cmd_vel", Twist, queue_size=1)
 
         # Start with publishing False (indicating not in exploration)
         self.expl_marker_pub.publish(False)
@@ -65,6 +68,13 @@ class RobotStateNode:
                 self.state = self.default_state
                 self.expl_marker_pub.publish(True)  # Indicating back to exploration
 
+    def publish_zero_velocity(self):
+        """ Publish zero velocity to /cmd_vel when charging. """
+        if self.state == 4:  # Charging state
+            twist_msg = Twist()
+            # Twist message with zero linear and angular velocities
+            self.cmd_vel_pub.publish(twist_msg)
+
     def get_state_service(self, req):
         rospy.loginfo(f"Robot '{self.namespace}' state requested. Current state: '{self.state}'")
         return GetStateResponse(self.state)
@@ -76,6 +86,9 @@ def main():
 
         # Initialize the RobotStateNode
         robot_state_node = RobotStateNode(robot_namespace)
+
+        # Set the timer to publish zero velocity at 50Hz if charging
+        rospy.Timer(rospy.Duration(1.0 / 50), robot_state_node.publish_zero_velocity)  # 50 Hz
 
         # Keep the node running
         rospy.spin()
