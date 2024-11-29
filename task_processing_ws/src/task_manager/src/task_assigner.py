@@ -64,10 +64,23 @@ def increment_task_priorities():
 
 
 def assign_tasks():
-    rate = rospy.Rate(1)  # 1 Hz loop rate for periodic updates
+    last_execution_time = 0  # Timestamp of the last execution
+
     while not rospy.is_shutdown():
-        # Increment task priorities at regular intervals
+        # Increment task priorities
         increment_task_priorities()
+        
+        k = rospy.get_param('/task_execution_interval', 10)  # Execution interval in minutes
+        k_seconds = k * 60
+        current_time = time.time()
+        
+        # Check if enough time has elapsed since the last execution
+        if current_time - last_execution_time < k_seconds:
+            rospy.sleep(1)
+            continue
+
+        last_execution_time = current_time  # Update the last execution time
+
 
         if not priority_queue:
             rospy.sleep(1)
@@ -93,13 +106,11 @@ def assign_tasks():
                 rospy.loginfo("No free robots available, re-queueing tasks...")
                 for task in tasks:
                     heapq.heappush(priority_queue, (task.priority, task))
-                rospy.sleep(1)
                 continue
         except rospy.ServiceException as e:
             rospy.logerr(f"Failed to get free robots: {e}")
             for task in tasks:
                 heapq.heappush(priority_queue, (task.priority, task))
-            rospy.sleep(1)
             continue
 
         # Create a cost matrix and store object locations
@@ -150,8 +161,6 @@ def assign_tasks():
         for i in range(num_tasks):
             if i not in task_indices:
                 heapq.heappush(priority_queue, (tasks[i].priority, tasks[i]))
-
-        rate.sleep()
 
 
 if __name__ == "__main__":
