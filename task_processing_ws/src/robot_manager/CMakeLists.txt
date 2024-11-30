@@ -6,6 +6,7 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   message_generation
+  visualization_msgs
 )
 
 add_service_files(
@@ -27,7 +28,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs message_runtime geometry_msgs
+  CATKIN_DEPENDS rospy std_msgs message_runtime geometry_msgs visualization_msgs
 )
 
 catkin_install_python(PROGRAMS

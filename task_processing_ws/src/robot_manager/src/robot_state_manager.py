@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import rospy
-from std_msgs.msg import String, Bool
+from std_msgs.msg import Bool
 from robot_manager.srv import GetState
 from geometry_msgs.msg import Point
+from visualization_msgs.msg import InteractiveMarkerUpdate
 import random
 import time
 import numpy as np
@@ -34,7 +35,7 @@ class RobotStateManager:
         for ns in self.robot_namespaces:
             topic = f"/{ns}/expl_marker_controller/update"
             self.subscribers.append(
-                rospy.Subscriber(topic, String, self.update_callback, callback_args=ns)
+                rospy.Subscriber(topic, InteractiveMarkerUpdate, self.update_callback, callback_args=ns)
             )
 
         # Timer for assigning tasks (not started until all robots send NoGain)
@@ -44,12 +45,29 @@ class RobotStateManager:
         rospy.loginfo(f"RobotStateManager initialized for {self.num_robots} robots.")
 
     def update_callback(self, msg, robot_namespace):
-        # Check if the robot sent any message other than "NoGain"
+        # Skip processing if all robots have sent NoGain and patrolling is active
         if all(self.no_gain_received.values()) and self.patrol:
             return
-        
-        if msg.data != "NoGain":
-            # Reset the robot state if the message comes after the last NoGain and within t minutes
+
+        # Check for menu entries with title "NoGain"
+        no_gain_detected = False
+        for marker in msg.markers:
+            if marker.menu_entries:
+                for entry in marker.menu_entries:
+                    if entry.title == "NoGain":
+                        no_gain_detected = True
+                        break
+
+        if no_gain_detected:
+            if not self.no_gain_received[robot_namespace]:
+                rospy.loginfo(f"Received NoGain from {robot_namespace}")
+                self.no_gain_received[robot_namespace] = True
+                self.robot_states[robot_namespace] = 0
+
+                # Update the last no-gain timestamp
+                self.last_no_gain_time = time.time()
+        else:
+            # Reset the robot state if a non-NoGain message comes after the last NoGain and within t minutes
             if self.last_no_gain_time and (time.time() - self.last_no_gain_time <= self.sampling_interval):
                 rospy.loginfo(f"Resetting state for {robot_namespace} due to activity after last NoGain.")
                 self.robot_states[robot_namespace] = 1
@@ -61,18 +79,8 @@ class RobotStateManager:
                     self.assignment_timer.shutdown()
                     self.assignment_timer = None
 
-                # Reset no_gain_received to require all robots to send NoGain again
-                self.no_gain_received = {ns: False for ns in self.robot_namespaces}
-
-        # Handle "NoGain" message
-        if msg.data == "NoGain":
-            if not self.no_gain_received[robot_namespace]:
-                rospy.loginfo(f"Received NoGain from {robot_namespace}")
-                self.no_gain_received[robot_namespace] = True
-                self.robot_states[robot_namespace] = 0
-
-                # Update the last no-gain timestamp
-                self.last_no_gain_time = time.time()
+            # Reset no_gain_received for the required robot
+            self.no_gain_received[robot_namespace] = False
 
         # Check if all robots have sent NoGain
         if all(self.no_gain_received.values()):
