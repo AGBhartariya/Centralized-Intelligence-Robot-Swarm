@@ -147,3 +147,77 @@ void QueuePathPlanner::appendCallback(const trajectory_control_msgs::PlanningTas
     } // end scope for locking mutex 
 
 }
+
+vector<nav_msg::Path> QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg)
+{
+    bool append_flag=true;
+    vector<nav_msg::Path> path_list;
+
+    if( !traversability_flag_ || !wall_flag_ )
+    {
+	ROS_WARN("no traversability or wall cloud available");
+	append_flag=false;
+    }
+
+    /// < we cannot append the task 
+    if(!append_flag ) 
+    {
+        // we are not ready for appending a new task 
+        
+	ROS_WARN("Cost for task %s dropped",task_msg.name.c_str());
+
+	return path_list; /// < EXIT POINT 
+    }
+
+    
+    /// < we can actually append a new task 
+
+    // extract robot position
+
+    // generate the array of points including which has the start and end node and intermediate node whose cost needs to be computed 
+    std::vector<geometry_msgs::Point> waypoints;
+    waypoints.insert(task_msg.waypoints.begin(),task_msg.waypoints.end());
+    
+    int num_segments = task_msg.segment_count;
+    if(task_msg.type == kPathCyclic)
+    {
+        ROS_INFO("cyclic path");
+        waypoints.push_back(robot_position);
+        num_segments++;
+    }
+
+    // create a new task object
+    //std::vector<TaskSegment*> task;
+    TaskPtr task(new Task); 
+    task->type = (TaskType)task_msg.type; 
+
+    // for each task-segment contained in the task 
+    for(int i=0; i< num_segments; i++)
+    {
+	/// < create a new task-segment object
+	//TaskSegment *segment = new TaskSegment;
+        TaskSegmentPtr segment(new TaskSegment);
+
+	// < fill main segment's data
+	segment->status=STATUS_PLANNING;
+	segment->segment_task.header=task_msg.header;
+	segment->segment_task.name=task_msg.name;
+	segment->segment_task.segment_id=i+1;
+	segment->segment_task.segment_count=num_segments;//task_msg.segment_count;
+        
+        // < each task segment is composed just by TWO waypoints 
+	segment->segment_task.waypoints.push_back(waypoints[i]);
+	segment->segment_task.waypoints.push_back(waypoints[i+1]);
+        
+        
+	// start planning thread
+	//segment->thread=boost::thread(&QueuePathPlanner::pathPlanningCallback,segment); 
+        segment->thread=boost::thread(boost::bind(&QueuePathPlanner::pathPlanningCallback, this, segment, task)); /// < START NEW THREAD 
+
+	// add segment to the task
+	task->push_back(segment);
+        path_list.push_back(segment->path)
+    }
+    return path_list;
+
+}
