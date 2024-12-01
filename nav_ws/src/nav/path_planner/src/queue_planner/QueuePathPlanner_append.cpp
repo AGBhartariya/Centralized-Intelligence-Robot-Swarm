@@ -148,7 +148,7 @@ void QueuePathPlanner::appendCallback(const trajectory_control_msgs::PlanningTas
 
 }
 
-vector<nav_msg::Path> QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg)
+std::vector<nav_msg::Path> QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg)
 {
     bool append_flag=true;
     vector<nav_msg::Path> path_list;
