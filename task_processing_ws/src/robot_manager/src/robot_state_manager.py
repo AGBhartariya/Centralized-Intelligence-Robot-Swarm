@@ -35,7 +35,12 @@ class RobotStateManager:
         for ns in self.robot_namespaces:
             topic = f"/{ns}/expl_marker_controller/update"
             self.subscribers.append(
-                rospy.Subscriber(topic, InteractiveMarkerUpdate, self.update_callback, callback_args=ns)
+                rospy.Subscriber(
+                    topic,
+                    InteractiveMarkerUpdate,
+                    self.update_callback,
+                    callback_args=ns,
+                )
             )
 
         # Timer for assigning tasks (not started until all robots send NoGain)
@@ -68,14 +73,20 @@ class RobotStateManager:
                 self.last_no_gain_time = time.time()
         else:
             # Reset the robot state if a non-NoGain message comes after the last NoGain and within t minutes
-            if self.last_no_gain_time and (time.time() - self.last_no_gain_time <= self.sampling_interval):
-                rospy.loginfo(f"Resetting state for {robot_namespace} due to activity after last NoGain.")
+            if self.last_no_gain_time and (
+                time.time() - self.last_no_gain_time <= self.sampling_interval
+            ):
+                rospy.loginfo(
+                    f"Resetting state for {robot_namespace} due to activity after last NoGain."
+                )
                 self.robot_states[robot_namespace] = 1
                 self.no_gain_received[robot_namespace] = False
 
                 # Kill the existing timer if it's still running
                 if self.assignment_timer:
-                    rospy.logwarn(f"Killing existing timer due to activity from {robot_namespace}.")
+                    rospy.logwarn(
+                        f"Killing existing timer due to activity from {robot_namespace}."
+                    )
                     self.assignment_timer.shutdown()
                     self.assignment_timer = None
 
@@ -84,7 +95,9 @@ class RobotStateManager:
 
         # Check if all robots have sent NoGain
         if all(self.no_gain_received.values()):
-            rospy.loginfo("All robots have sent NoGain. Broadcasting isPatrolling status.")
+            rospy.loginfo(
+                "All robots have sent NoGain. Broadcasting isPatrolling status."
+            )
 
             # Start the assignment timer after the specified sampling interval
             if self.assignment_timer:
@@ -97,13 +110,16 @@ class RobotStateManager:
 
     def sample_points(self, num_points=10):
         # Placeholder for map boundaries; adjust as needed
-        return [Point(x=random.uniform(0, 100), y=random.uniform(0, 100), z=0.0) for _ in range(num_points)]
+        return [
+            Point(x=random.uniform(0, 100), y=random.uniform(0, 100), z=0.0)
+            for _ in range(num_points)
+        ]
 
     def calculate_cost(self, robot_position, goal_position):
         # Compute Euclidean distance as the cost
         dx = robot_position.x - goal_position.x
         dy = robot_position.y - goal_position.y
-        return (dx ** 2 + dy ** 2) ** 0.5
+        return (dx**2 + dy**2) ** 0.5
 
     def assign_points(self, event):
         self.patrol = True
@@ -122,7 +138,9 @@ class RobotStateManager:
                 if self.robot_states[robot] == 0:
                     free_robots.append(robot)
                 else:
-                    rospy.loginfo(f"{robot} is busy (state: {self.robot_states[robot]})")
+                    rospy.loginfo(
+                        f"{robot} is busy (state: {self.robot_states[robot]})"
+                    )
             except rospy.ServiceException as e:
                 rospy.logwarn(f"Service call to {service_name} failed: {e}")
             except rospy.ROSException:
@@ -139,9 +157,7 @@ class RobotStateManager:
 
         # Retrieve positions of free robots
         robot_positions = {
-            robot: Point(
-                x=random.uniform(0, 100), y=random.uniform(0, 100), z=0.0
-            )
+            robot: Point(x=random.uniform(0, 100), y=random.uniform(0, 100), z=0.0)
             for robot in free_robots
         }  # Replace with actual position retrieval logic
 

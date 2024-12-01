@@ -36,8 +36,8 @@ def task_callback(task):
 
 def increment_task_priorities():
     """Periodically increments the priorities of unassigned tasks."""
-    k = rospy.get_param('/task_reassignment_interval', 10)  # Time interval in minutes
-    n = rospy.get_param('/task_priority_increment', 1)      # Priority increment amount
+    k = rospy.get_param("/task_reassignment_interval", 10)  # Time interval in minutes
+    n = rospy.get_param("/task_priority_increment", 1)  # Priority increment amount
     current_time = time.time()
 
     # Convert `k` to seconds
@@ -51,7 +51,9 @@ def increment_task_priorities():
 
         # Check if the task has exceeded the `k`-minute threshold
         if current_time - timestamp >= k_seconds:
-            rospy.loginfo(f"Incrementing priority for task '{task.description}' by {n}.")
+            rospy.loginfo(
+                f"Incrementing priority for task '{task.description}' by {n}."
+            )
             priority -= n  # Lower priority value means higher priority
             task_timestamps[serialized_description] = current_time  # Update timestamp
 
@@ -69,18 +71,19 @@ def assign_tasks():
     while not rospy.is_shutdown():
         # Increment task priorities
         increment_task_priorities()
-        
-        k = rospy.get_param('/task_execution_interval', 10)  # Execution interval in minutes
+
+        k = rospy.get_param(
+            "/task_execution_interval", 10
+        )  # Execution interval in minutes
         k_seconds = k * 60
         current_time = time.time()
-        
+
         # Check if enough time has elapsed since the last execution
         if current_time - last_execution_time < k_seconds:
             rospy.sleep(1)
             continue
 
         last_execution_time = current_time  # Update the last execution time
-
 
         if not priority_queue:
             rospy.sleep(1)
@@ -98,7 +101,9 @@ def assign_tasks():
 
         # Get free robots
         try:
-            free_robots_client = rospy.ServiceProxy('/robot_manager/GetFreeRobots', GetFreeRobots)
+            free_robots_client = rospy.ServiceProxy(
+                "/robot_manager/GetFreeRobots", GetFreeRobots
+            )
             free_robots_response = free_robots_client()
             free_robot_ids = free_robots_response.robot_ids
 
@@ -117,20 +122,31 @@ def assign_tasks():
         num_tasks = len(tasks)
         num_robots = len(free_robot_ids)
         cost_matrix = np.full((num_tasks, num_robots), np.inf)
-        task_object_locations = [[None for _ in range(num_robots)] for _ in range(num_tasks)]
+        task_object_locations = [
+            [None for _ in range(num_robots)] for _ in range(num_tasks)
+        ]
 
         try:
             for i, task in enumerate(tasks):
                 data = task.description
                 task_locations = task.locations
                 # Get metadata for the task
-                object_locations_client = rospy.ServiceProxy('/task_data_service/QueryTaskData', QueryObjectLocations)
+                object_locations_client = rospy.ServiceProxy(
+                    "/task_data_service/QueryTaskData", QueryObjectLocations
+                )
                 object_locations = object_locations_client(data[1]).locations
 
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
-                    task_cost_client = rospy.ServiceProxy('/robot_manager/GetTaskCost', GetTaskCost)
-                    response = task_cost_client(task_type=data[0], robot_id=robot_id, objectlocations = object_locations, tasklocations = task_locations)
+                    task_cost_client = rospy.ServiceProxy(
+                        "/robot_manager/GetTaskCost", GetTaskCost
+                    )
+                    response = task_cost_client(
+                        task_type=data[0],
+                        robot_id=robot_id,
+                        objectlocations=object_locations,
+                        tasklocations=task_locations,
+                    )
                     cost = response.cost
                     object_location = response.object_location  # PoseStamped
 
@@ -153,7 +169,9 @@ def assign_tasks():
                 task = tasks[task_idx]
                 robot_id = free_robot_ids[robot_idx]
                 assigned_location = task_object_locations[task_idx][robot_idx]
-                rospy.loginfo(f"Assigned task '{task.description}' to robot {robot_id} at location {assigned_location}.")
+                rospy.loginfo(
+                    f"Assigned task '{task.description}' to robot {robot_id} at location {assigned_location}."
+                )
             else:
                 rospy.loginfo("No valid assignment found for some tasks.")
 
@@ -164,6 +182,6 @@ def assign_tasks():
 
 
 if __name__ == "__main__":
-    rospy.init_node('task_assigner')
-    rospy.Subscriber('/task_topic', Task, task_callback)
+    rospy.init_node("task_assigner")
+    rospy.Subscriber("/task_topic", Task, task_callback)
     assign_tasks()
