@@ -172,19 +172,11 @@ vector<nav_msg::Path> QueuePathPlanner::returnCostPath(const trajectory_control_
     
     /// < we can actually append a new task 
 
-    // extract robot position
-
     // generate the array of points including which has the start and end node and intermediate node whose cost needs to be computed 
     std::vector<geometry_msgs::Point> waypoints;
     waypoints.insert(task_msg.waypoints.begin(),task_msg.waypoints.end());
     
     int num_segments = task_msg.segment_count;
-    if(task_msg.type == kPathCyclic)
-    {
-        ROS_INFO("cyclic path");
-        waypoints.push_back(robot_position);
-        num_segments++;
-    }
 
     // create a new task object
     //std::vector<TaskSegment*> task;
