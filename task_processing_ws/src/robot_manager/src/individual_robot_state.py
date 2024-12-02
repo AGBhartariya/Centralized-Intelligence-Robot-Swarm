@@ -6,9 +6,8 @@ import rospy
 from std_msgs.msg import Bool
 from robot_manager.srv import GetState, GetStateResponse
 from robot_manager.msg import Task
-from geometry_msgs.msg import Twist
-from task_node import WaypointPublisher
-from task_assigner import assign_tasks
+from geometry_msgs.msg import Twist, Point
+from trajectory_control_msgs.msg import PlanningTask 
 
 
 class RobotStateNode:
@@ -62,23 +61,50 @@ class RobotStateNode:
         )  # in seconds (default to 1 min)
         rospy.Timer(rospy.Duration(self.check_battery_rate), self.check_battery)
 
+        # Publishers for the topics
+        self.waypoint_pub = rospy.Publisher(f"/{self.namespace}/planner/waypoints/server", Point, queue_size=10)
+        self.task_pub = rospy.Publisher(f"/{self.namespace}/planner/tasks/append", PlanningTask, queue_size=10)
+        self.cancel_pub = rospy.Publisher(f"/{self.namespace}/planner/tasks/remove", PlanningTask, queue_size=10)
+
+        rospy.loginfo("Waypoint Publisher Node Initialized!")
+
         rospy.loginfo(
             f"RobotStateNode for namespace '{self.namespace}' initialized. Default state: '{self.state}'"
         )
+
+    def publish_waypoint(self, waypoint, task_type):
+        # Cancel the previous task
+        self.cancel_current_task()
+
+        # Publish the waypoint to /ugv1/planner/waypoints/server/update
+        rospy.loginfo(f"Publishing waypoint to /ugv1/planner/waypoints/server: {waypoint}")
+        self.waypoint_pub.publish(waypoint)
+
+        # Publish a task for navigation to the waypoint
+        rospy.loginfo(f"Publishing waypoint to /ugv1/planner/tasks/append for navigation: {waypoint}")
+        task_msg = PlanningTask()  # Create a PlanningTask message
+        task_msg.name = "navigate_to_waypoint"
+        task_msg.segment_id = 1  # Set a unique segment ID
+        task_msg.segment_count = 1  # Only one waypoint in this task
+        task_msg.type = task_type  # Either normal or cyclic type
+        task_msg.waypoints = [waypoint]  # Add the waypoint to the waypoints array
+
+        # Publish the task to the planner
+        self.task_pub.publish(task_msg)
 
     def patrol_callback(self, msg):
         if msg:
             self.default_state = 0
 
-    def start_task_callback(self, msg):
+    def start_task_callback(self, task):
         """
         Callback to execute tasks when a task is received.
         param msg: Task message containing [p, [x1, x2], [x3, x4]]
         """
-        rospy.loginfo(f"Received task: {msg}")
+        rospy.loginfo(f"Received task: {task}")
 
         # Directly process the received task (no priority queue, just process the task)
-        self.execute_task(msg)
+        self.execute_task(task)
 
     def execute_task(self, task):
         """
@@ -94,14 +120,14 @@ class RobotStateNode:
 
         if task_type == 1:  # Bring Object
             rospy.loginfo(f"Executing 'Bring Object' task: Bringing {task_object} to {location_1.position}.")
-            self.simulate_movement(location_1)
+            self.goToPoint(location_1)
         elif task_type == 2:  # Inspect/Interact
             rospy.loginfo(f"Executing 'Inspect/Interact' task: Interacting with {task_object} at {location_1.position}.")
-            self.simulate_movement(location_1)
+            self.goToPoint(location_1)
         elif task_type == 3:  # Move Object
             rospy.loginfo(f"Executing 'Move Object' task: Moving {task_object} from {location_1.position} to {location_2.position}.")
-            self.simulate_movement(location_1)
-            self.simulate_movement(location_2)
+            self.goToPoint(location_1)
+            self.goToPoint(location_2)
         elif task_type == 4:  # Find Object
             rospy.loginfo(f"Executing 'Find Object' task: Searching for {task_object}.")
             self.simulate_search(task_object)
@@ -112,9 +138,8 @@ class RobotStateNode:
         rospy.loginfo(f"Task completed. Returning to default state: {self.default_state}.")
         self.state = self.default_state
 
-        # No queue needed, task is processed sequentially
 
-    def simulate_movement(self, Point):
+    def goToPoint(self, Point):
         """
         Simulates movement to a location specified.
         """
@@ -130,10 +155,6 @@ class RobotStateNode:
         # You can also simulate a delay for the task if needed (e.g., waiting for navigation completion)
         rospy.sleep(3)
 
-    
-    # SIMULATE SEARCH
-
-
     def calculate_distance_map_frame(self, target_x, target_y):
         
         try:
@@ -144,7 +165,6 @@ class RobotStateNode:
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
             rospy.logwarn("TF lookup failed, returning infinite distance.")
             return float('inf')
-
 
     def start_rotation(self):
         """
@@ -159,39 +179,6 @@ class RobotStateNode:
         for _ in range(50):  # Rotate for a fixed duration (adjust as needed)
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
-
-
-    def simulate_search(self, object_type):
-        """
-        Simulates searching for an object type.
-        :param object_type: The type of object to search for
-        """
-        rospy.loginfo(f"Simulating search for object of type: {object_type}.")
-        # Get the waypoint from task_assigner
-        waypoints = assign_tasks()
-        
-
-        # Use simulate_movement to navigate to the waypoint
-        self.simulate_movement(waypoints)
-        rate = rospy.Rate(10)  # 10 Hz loop rate
-
-        tolerance = 0.1  # Threshold to start rotating
-        while not rospy.is_shutdown():
-            # Calculate distance with respect to the "map" frame
-            distance = self.calculate_distance_map_frame(target_x, target_y)
-
-            if distance <= tolerance:
-                rospy.loginfo("Reached near the waypoint. Starting rotation.")
-                self.start_rotation()
-                break
-
-            rospy.loginfo(f"Current distance to waypoint: {distance}")
-            rate.sleep()
-
-        rospy.sleep(3)    
-
-
-
 
     def check_battery(self, event):
         # Simulate battery checking; retrieve the battery level from ROS parameters
