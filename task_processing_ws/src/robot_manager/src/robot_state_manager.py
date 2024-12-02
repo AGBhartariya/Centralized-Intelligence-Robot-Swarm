@@ -126,9 +126,8 @@ class RobotStateManager:
             cost_path = rospy.ServiceProxy('cost_path', GetCostPath)
             request = GetCostPathRequest()
             goal_point=goal_position.pose.position
-            robot_point = robot_position.pose.position
-            request.task.waypoints = [robot_point, goal_point] 
-            request.task.header.frame_id='map'
+            request.task.waypoints = [robot_position, goal_point] 
+            request.task.header.frame_id='odom'
             request.task.segment_count=1
             response = cost_path(request)
             total_cost=0
@@ -141,10 +140,20 @@ class RobotStateManager:
 
                     distance = ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
                     total_cost += distance
+            return total_cost
         except rospy.ServiceException as e:
            print("Service call failed: %s"%e)
-        
-        return total_cost
+           return None
+
+    def getRobotPos(self,robot_id):
+        listener = tf.TransformListener()
+        try:
+            listener.waitForTransform("odom", f"{robot_id}/base_link", rospy.Time(0), rospy.Duration(5.0))
+            (trans, rot) = listener.lookupTransform("odom", f"{robot_id}/base_link", rospy.Time(0))
+            return Point(x=trans[0],y=trans[1],z=trans[2])
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            rospy.logerr("Error getting transform: %s", e)
+            return None
 
     def assign_points(self, event):
         self.patrol = True
@@ -182,9 +191,9 @@ class RobotStateManager:
 
         # Retrieve positions of free robots
         robot_positions = {
-            robot: Point(x=random.uniform(0, 100), y=random.uniform(0, 100), z=0.0)
+            robot: self.getRobotPos(robot)
             for robot in free_robots
-        }  # Replace with actual position retrieval logic
+        }
 
         # Calculate cost matrix
         cost_matrix = np.zeros((len(free_robots), len(sampled_points)))
