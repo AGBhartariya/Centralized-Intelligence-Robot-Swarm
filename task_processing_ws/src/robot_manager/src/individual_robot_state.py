@@ -63,9 +63,94 @@ class RobotStateNode:
         if msg:
             self.default_state = 0
 
+
+
     def start_task_callback(self, msg):
-        # TODO: Implement Task Completion function here
+         """
+            Callback to execute tasks when a task is received.
+            param msg: Task message containing [p, [x1, x2], [x3, x4]]
+         """
+
+        # Add the task to the min-heap
+        heapq.heappush(self.task_queue, (msg.priority, msg))
+        self.process_next_task()
+
+        rospy.loginfo(f"Received task: {msg}")
+    
+        # Parse task components
+        priority = msg.p  # p
+        task_type = msg.x1  # x1
+        task_object = msg.x2  # x2
+        location_1 = msg.x3  # x3
+        location_x4 = msg.x4  # x4
+
+
+        def process_next_task(self):
+        """
+        Processes the next task in the priority queue, if available.
+        """
+        if self.state == 3:  # Skip processing if already performing a task
+            return
+
+        if self.task_queue:
+            # Get the task with the lowest priority value (highest actual priority)
+            _, task = heapq.heappop(self.task_queue)
+            self.execute_task(task)
+ 
+         
+        def execute_task(self, task):
+        """
+        Executes a task based on its type.
+        """
+        rospy.loginfo(f"Executing task: {task}")
+        self.state = 3  # Tasking state
+
+        task_type = task.task_type  # Task type
+        task_object = task.task_object  # Task object
+        location_1 = task.location_1  # PoseStamped location 1
+        location_2 = task.location_2  # PoseStamped location 2 (if applicable)
+
+        if task_type == 1:  # Bring Object
+            rospy.loginfo(f"Executing 'Bring Object' task: Bringing {task_object} to {location_1.pose.position}.")
+            self.simulate_movement(location_1)
+        elif task_type == 2:  # Inspect/Interact
+            rospy.loginfo(f"Executing 'Inspect/Interact' task: Interacting with {task_object} at {location_1.pose.position}.")
+            self.simulate_movement(location_1)
+        elif task_type == 3:  # Move Object
+            rospy.loginfo(f"Executing 'Move Object' task: Moving {task_object} from {location_1.pose.position} to {location_2.pose.position}.")
+            self.simulate_movement(location_1)
+            self.simulate_movement(location_2)
+        elif task_type == 4:  # Find Object
+            rospy.loginfo(f"Executing 'Find Object' task: Searching for {task_object}.")
+            self.simulate_search(task_object)
+        else:
+            rospy.logwarn(f"Unknown task type: {task_type}. Skipping task.")
+
+        # Task complete
+        rospy.loginfo(f"Task completed. Returning to default state: {self.default_state}.")
         self.state = self.default_state
+
+        # Process the next task in the queue
+        self.process_next_task()
+
+        def simulate_movement(self, pose_stamped):
+           """
+           Simulates movement to a location specified
+           """
+
+           rospy.loginfo(f"Simulating movement to location: {pose_stamped.pose.position}.")
+           rospy.sleep(2)  # Simulate delay for movement
+       
+
+
+        def simulate_search(self, object_type):
+            """
+            Simulates searching for an object type.
+            :param object_type: The type of object to search for
+            """
+            rospy.loginfo(f"Simulating search for object of type: {object_type}.")
+            rospy.sleep(3)  # Simulate delay for search
+
 
     def check_battery(self, event):
         # Simulate battery checking; retrieve the battery level from ROS parameters
