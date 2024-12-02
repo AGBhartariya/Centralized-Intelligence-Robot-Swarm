@@ -36,3 +36,8 @@ Where:
    **x1 = 4**  
    **Description:** Locate an object of type **x2**.  
    **Special Note:** This is a specific case of task type 2, but without a fixed location.
+
+5. **Go to Location:**
+   **x1 = 5**
+   **Description:** Move to a specific location **x3**.
+   **Special Note:** This task type is used for navigation to a specified place and in invariant of object type
