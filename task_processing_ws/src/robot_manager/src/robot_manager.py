@@ -55,13 +55,13 @@ class RobotManager:
             "robot_ids": self.free_robots,
         }
 
-    def computeCost(self, location, task_location, robot_id, task_desc):
+    def computeCost(self, objectlocation, task_location, robot_id, task_desc):
         #implement cost function for all scenarios
         rospy.wait_for_service('cost_path')
         try:
             cost_path = rospy.ServiceProxy('cost_path', GetCostPath)
             request = GetCostPathRequest()
-            request.task = location 
+            request.task = objectlocation 
             response = cost_path(request)
             total_cost=0
             for path in response.path_list:
@@ -83,17 +83,15 @@ class RobotManager:
         task_desc = req.task_type  # Category of task i.e. x1
         robot_id = req.robot_id
         objectlocations = req.objectlocations  # Poses of all objects of type x2
-        tasklocations = (
-            req.tasklocations
-        )  # Poses of where the task needs to be done (x3, x4)
+        tasklocations = req.tasklocations # Poses of where the task needs to be done (x3, x4)
 
         cost = np.inf
         obj_loc = None
-        for location in objectlocations:
-            temp = self.computeCost(location, tasklocations, robot_id, task_desc)
+        for objectlocation in objectlocations:
+            temp = self.computeCost(objectlocation, tasklocations, robot_id, task_desc)
             if temp < cost:
                 cost = temp
-                obj_loc = location
+                obj_loc = objectlocation
 
         return {"cost": cost, "object_location": obj_loc}  # Example cost function
 
