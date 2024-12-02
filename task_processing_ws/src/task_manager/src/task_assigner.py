@@ -174,6 +174,7 @@ def assign_tasks():
                 )
             else:
                 rospy.loginfo("No valid assignment found for some tasks.")
+        return assigned_location
 
         # Requeue any tasks that couldn't be assigned
         for i in range(num_tasks):

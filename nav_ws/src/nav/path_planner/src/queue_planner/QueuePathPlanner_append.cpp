@@ -19,6 +19,7 @@
 */
 
 #include "QueuePathPlanner.h"
+#include <vector>
 
 void QueuePathPlanner::appendCallback(const trajectory_control_msgs::PlanningTask& task_msg)
 {
@@ -148,10 +149,10 @@ void QueuePathPlanner::appendCallback(const trajectory_control_msgs::PlanningTas
 
 }
 
-std::vector<nav_msg::Path> QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg)
+std::vector<nav_msgs::Path> QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg)
 {
     bool append_flag=true;
-    vector<nav_msg::Path> path_list;
+    std::vector<nav_msgs::Path> path_list;
 
     if( !traversability_flag_ || !wall_flag_ )
     {
@@ -174,7 +175,8 @@ std::vector<nav_msg::Path> QueuePathPlanner::returnCostPath(const trajectory_con
 
     // generate the array of points including which has the start and end node and intermediate node whose cost needs to be computed 
     std::vector<geometry_msgs::Point> waypoints;
-    waypoints.insert(task_msg.waypoints.begin(),task_msg.waypoints.end());
+    waypoints.insert(waypoints.end(), task_msg.waypoints.begin(), task_msg.waypoints.end());
+
     
     int num_segments = task_msg.segment_count;
 
@@ -208,7 +210,7 @@ std::vector<nav_msg::Path> QueuePathPlanner::returnCostPath(const trajectory_con
 
 	// add segment to the task
 	task->push_back(segment);
-        path_list.push_back(segment->path)
+        path_list.push_back(segment->path);
     }
     return path_list;
 

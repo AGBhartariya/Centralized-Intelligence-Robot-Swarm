@@ -184,7 +184,7 @@ protected:
     ros::Publisher task_remove_pub_; // publisher for remove request (on destruction)
     void appendCallback(const trajectory_control_msgs::PlanningTask& task_msg);
     void removeCallback(const trajectory_control_msgs::PlanningTask& task_msg);
-    std::vector<nav_msg::Path> returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg);
+    std::vector<nav_msgs::Path> returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg);
     
     // this callback is called automatically every kTaskCallbackPeriod seconds 
     void taskTimerCallback(const ros::TimerEvent& timer_msg);
