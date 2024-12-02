@@ -6,7 +6,7 @@ from nav_msgs.msg import Path
 from robot_manager.srv import GetFreeRobots, GetTaskCost
 from robot_manager.srv import GetState  # Add GetState service for each robot
 import numpy as np
-from GetCostPath.srv import GetCostPath, GetCostPathRequest
+from trajectory_control_msgs.srv import GetCostPath, GetCostPathRequest
 
 
 class RobotManager:
@@ -55,7 +55,7 @@ class RobotManager:
             "robot_ids": self.free_robots,
         }
 
-    def computeCost(self, location, robot_id, task_desc):
+    def computeCost(self, location, task_location, robot_id, task_desc):
         #implement cost function for all scenarios
         rospy.wait_for_service('cost_path')
         try:
