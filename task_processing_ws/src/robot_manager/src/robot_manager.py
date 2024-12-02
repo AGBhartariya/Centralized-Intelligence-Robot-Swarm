@@ -1,8 +1,12 @@
 #!/usr/bin/env python3
 import rospy
+from trajectory_control_msgs.msg import PlanningTask, Path
+from nav_msgs.msg import Path
+
 from robot_manager.srv import GetFreeRobots, GetTaskCost
 from robot_manager.srv import GetState  # Add GetState service for each robot
 import numpy as np
+from GetCostPath.srv import GetCostPath, GetCostPathRequest
 
 
 class RobotManager:
@@ -52,8 +56,28 @@ class RobotManager:
         }
 
     def computeCost(self, location, robot_id, task_desc):
-        # TODO : implement cost function for all scenarios
-        return None
+        #implement cost function for all scenarios
+        rospy.wait_for_service('cost_path')
+        try:
+            cost_path = rospy.ServiceProxy('cost_path', GetCostPath)
+            request = GetCostPathRequest()
+            request.task = location 
+            response = cost_path(request)
+            total_cost=0
+            for path in response.path_list:
+                poses = path.poses
+                for i in range(len(poses) - 1):
+                    # Extract positions of successive waypoints
+                    p1 = poses[i].pose.position
+                    p2 = poses[i + 1].pose.position
+
+                    distance = ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
+                    total_cost += distance
+
+        except rospy.ServiceException as e:
+           print("Service call failed: %s"%e)
+        
+        return total_cost
 
     def handle_get_task_cost(self, req):
         task_desc = req.task_type  # Category of task i.e. x1

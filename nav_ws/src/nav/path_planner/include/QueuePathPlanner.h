@@ -27,7 +27,6 @@
 
 #include <boost/thread.hpp>
 #include <boost/thread/recursive_mutex.hpp>
-#include <vector>
 
 #include <trajectory_control_msgs/PlanningFeedback.h>
 #include <trajectory_control_msgs/PlanningTask.h>
@@ -43,6 +42,8 @@
 #include "KdTreeFLANN.h"
 
 #include <trajectory_control_msgs/message_enums.h>
+
+#include "trajectory_control_msgs/GetCostPath.h"
 
 #define VERBOSE 1
 
@@ -182,10 +183,11 @@ protected:
     ros::Subscriber task_append_sub_; // subscriber for append request
     ros::Subscriber task_remove_sub_; // subscriber for remove request
     ros::Publisher task_remove_pub_; // publisher for remove request (on destruction)
+    ros::ServiceServer cost_path_ser;
     void appendCallback(const trajectory_control_msgs::PlanningTask& task_msg);
     void removeCallback(const trajectory_control_msgs::PlanningTask& task_msg);
-    std::vector<nav_msg::Path> returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg);
-    
+    std::vector<nav_msgs::Path> returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg);
+    bool getCostPath(trajectory_control_msgs::GetCostPath::Request  &req, trajectory_control_msgs::GetCostPath::Response &res);
     // this callback is called automatically every kTaskCallbackPeriod seconds 
     void taskTimerCallback(const ros::TimerEvent& timer_msg);
 
