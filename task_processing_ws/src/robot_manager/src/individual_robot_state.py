@@ -1,11 +1,14 @@
 #!/usr/bin/env python
 
+import math
+import tf
 import rospy
 from std_msgs.msg import Bool
 from robot_manager.srv import GetState, GetStateResponse
 from robot_manager.msg import Task
-from geometry_msgs.msg import Twist
-import heapq
+from geometry_msgs.msg import Twist, Point
+from trajectory_control_msgs.msg import PlanningTask 
+
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
@@ -18,6 +21,9 @@ class RobotStateNode:
         # Robot state: 0 : Idle, 1 : Exploring, 2 : Patrolling, 3 : Tasking, 4 : Charging
         self.default_state = 1
         self.state = self.default_state
+
+        self.tf_listener = tf.TransformListener()  # TF listener to get transforms
+        rospy.sleep(1) 
 
         # Battery threshold for low battery state
         self.battery_threshold = 10
@@ -55,49 +61,51 @@ class RobotStateNode:
         )  # in seconds (default to 1 min)
         rospy.Timer(rospy.Duration(self.check_battery_rate), self.check_battery)
 
+        # Publishers for the topics
+        self.waypoint_pub = rospy.Publisher(f"/{self.namespace}/planner/waypoints/server", Point, queue_size=10)
+        self.task_pub = rospy.Publisher(f"/{self.namespace}/planner/tasks/append", PlanningTask, queue_size=10)
+        self.cancel_pub = rospy.Publisher(f"/{self.namespace}/planner/tasks/remove", PlanningTask, queue_size=10)
+
+        rospy.loginfo("Waypoint Publisher Node Initialized!")
+
         rospy.loginfo(
             f"RobotStateNode for namespace '{self.namespace}' initialized. Default state: '{self.state}'"
         )
+
+    def publish_waypoint(self, waypoint, task_type):
+        # Cancel the previous task
+        self.cancel_current_task()
+
+        # Publish the waypoint to /ugv1/planner/waypoints/server/update
+        rospy.loginfo(f"Publishing waypoint to /ugv1/planner/waypoints/server: {waypoint}")
+        self.waypoint_pub.publish(waypoint)
+
+        # Publish a task for navigation to the waypoint
+        rospy.loginfo(f"Publishing waypoint to /ugv1/planner/tasks/append for navigation: {waypoint}")
+        task_msg = PlanningTask()  # Create a PlanningTask message
+        task_msg.name = "navigate_to_waypoint"
+        task_msg.segment_id = 1  # Set a unique segment ID
+        task_msg.segment_count = 1  # Only one waypoint in this task
+        task_msg.type = task_type  # Either normal or cyclic type
+        task_msg.waypoints = [waypoint]  # Add the waypoint to the waypoints array
+
+        # Publish the task to the planner
+        self.task_pub.publish(task_msg)
 
     def patrol_callback(self, msg):
         if msg:
             self.default_state = 0
 
-
-
-    def start_task_callback(self, msg):
+    def start_task_callback(self, task):
         """
-            Callback to execute tasks when a task is received.
-            param msg: Task message containing [p, [x1, x2], [x3, x4]]
+        Callback to execute tasks when a task is received.
+        param msg: Task message containing [p, [x1, x2], [x3, x4]]
         """
+        rospy.loginfo(f"Received task: {task}")
 
-        # Add the task to the min-heap
-        heapq.heappush(self.task_queue, (msg.priority, msg))
-        self.process_next_task()
+        # Directly process the received task (no priority queue, just process the task)
+        self.execute_task(task)
 
-        rospy.loginfo(f"Received task: {msg}")
-
-        # Parse task components
-        priority = msg.p  # p
-        task_type = msg.x1  # x1
-        task_object = msg.x2  # x2
-        location_1 = msg.x3  # x3
-        location_x4 = msg.x4  # x4
-
-
-    def process_next_task(self):
-        """
-        Processes the next task in the priority queue, if available.
-        """
-        if self.state == 3:  # Skip processing if already performing a task
-            return
-
-        if self.task_queue:
-            # Get the task with the lowest priority value (highest actual priority)
-            _, task = heapq.heappop(self.task_queue)
-            self.execute_task(task)
- 
-         
     def execute_task(self, task):
         """
         Executes a task based on its type.
@@ -107,19 +115,19 @@ class RobotStateNode:
 
         task_type = task.task_type  # Task type
         task_object = task.task_object  # Task object
-        location_1 = task.location_1  # PoseStamped location 1
-        location_2 = task.location_2  # PoseStamped location 2 (if applicable)
+        location_1 = task.location_1  # x3
+        location_2 = task.location_2  # x4
 
         if task_type == 1:  # Bring Object
-            rospy.loginfo(f"Executing 'Bring Object' task: Bringing {task_object} to {location_1.pose.position}.")
-            self.simulate_movement(location_1)
+            rospy.loginfo(f"Executing 'Bring Object' task: Bringing {task_object} to {location_1.position}.")
+            self.goToPoint(location_1)
         elif task_type == 2:  # Inspect/Interact
-            rospy.loginfo(f"Executing 'Inspect/Interact' task: Interacting with {task_object} at {location_1.pose.position}.")
-            self.simulate_movement(location_1)
+            rospy.loginfo(f"Executing 'Inspect/Interact' task: Interacting with {task_object} at {location_1.position}.")
+            self.goToPoint(location_1)
         elif task_type == 3:  # Move Object
-            rospy.loginfo(f"Executing 'Move Object' task: Moving {task_object} from {location_1.pose.position} to {location_2.pose.position}.")
-            self.simulate_movement(location_1)
-            self.simulate_movement(location_2)
+            rospy.loginfo(f"Executing 'Move Object' task: Moving {task_object} from {location_1.position} to {location_2.position}.")
+            self.goToPoint(location_1)
+            self.goToPoint(location_2)
         elif task_type == 4:  # Find Object
             rospy.loginfo(f"Executing 'Find Object' task: Searching for {task_object}.")
             self.simulate_search(task_object)
@@ -130,27 +138,47 @@ class RobotStateNode:
         rospy.loginfo(f"Task completed. Returning to default state: {self.default_state}.")
         self.state = self.default_state
 
-        # Process the next task in the queue
-        self.process_next_task()
 
-    def simulate_movement(self, pose_stamped):
+    def goToPoint(self, Point):
         """
-        Simulates movement to a location specified
+        Simulates movement to a location specified.
         """
+        waypoint = [{Point.x}, {Point.y}, {Point.z}]
+        rospy.loginfo(f"Simulating movement to location: {waypoint}. Publishing waypoint.")
 
-        rospy.loginfo(f"Simulating movement to location: {pose_stamped.pose.position}.")
-        rospy.sleep(2)  # Simulate delay for movement
-       
+        # Initialize the WaypointPublisher and use it to publish the waypoint for navigation
+        waypoint_publisher = WaypointPublisher()
 
+        # Publish the waypoint and start navigation
+        waypoint_publisher.publish_waypoint(waypoint, task_type=0)  # Assuming task_type=0 is normal task type
 
-    def simulate_search(self, object_type):
+        # You can also simulate a delay for the task if needed (e.g., waiting for navigation completion)
+        rospy.sleep(3)
+
+    def calculate_distance_map_frame(self, target_x, target_y):
+        
+        try:
+            # Get the robot's position in the "map" frame
+            (trans, _) = self.tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
+            robot_x, robot_y = trans[0], trans[1]
+            return math.sqrt((robot_x - target_x)**2 + (robot_y - target_y)**2)
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            rospy.logwarn("TF lookup failed, returning infinite distance.")
+            return float('inf')
+
+    def start_rotation(self):
         """
-        Simulates searching for an object type.
-        :param object_type: The type of object to search for
+        Rotates the robot on its axis.
         """
-        rospy.loginfo(f"Simulating search for object of type: {object_type}.")
-        rospy.sleep(3)  # Simulate delay for search
+        rate = rospy.Rate(10)  # 10 Hz loop rate
+        cmd = Twist()
+        cmd.linear.x = 0.0
+        cmd.angular.z = 0.5  # Rotate at a constant angular velocity
 
+        rospy.loginfo("Rotating on axis.")
+        for _ in range(50):  # Rotate for a fixed duration (adjust as needed)
+            self.cmd_vel_pub.publish(cmd)
+            rate.sleep()
 
     def check_battery(self, event):
         # Simulate battery checking; retrieve the battery level from ROS parameters

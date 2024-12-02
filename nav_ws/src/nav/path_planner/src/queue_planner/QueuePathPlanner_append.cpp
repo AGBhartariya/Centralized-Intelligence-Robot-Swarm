@@ -19,7 +19,11 @@
 */
 
 #include "QueuePathPlanner.h"
+<<<<<<< HEAD
+#include <vector>
+=======
 #include "trajectory_control_msgs/GetCostPath.h"
+>>>>>>> 5fd4f51d2538a2f43186cea80b94011a5c4d22c0
 
 void QueuePathPlanner::appendCallback(const trajectory_control_msgs::PlanningTask& task_msg)
 {
@@ -175,7 +179,12 @@ std::vector<nav_msgs::Path> QueuePathPlanner::returnCostPath(const trajectory_co
 
     // generate the array of points including which has the start and end node and intermediate node whose cost needs to be computed 
     std::vector<geometry_msgs::Point> waypoints;
+<<<<<<< HEAD
+    waypoints.insert(waypoints.end(), task_msg.waypoints.begin(), task_msg.waypoints.end());
+
+=======
     waypoints.insert(waypoints.end(),task_msg.waypoints.begin(),task_msg.waypoints.end());
+>>>>>>> 5fd4f51d2538a2f43186cea80b94011a5c4d22c0
     
     int num_segments = task_msg.segment_count;
 
