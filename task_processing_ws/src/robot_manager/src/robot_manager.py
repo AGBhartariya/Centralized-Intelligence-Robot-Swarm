@@ -86,7 +86,7 @@ class RobotManager:
             elif task_desc==4:
                 all_points=[robot_pos]+[obj_point]
 
-            request.task.header.frame_id = 'map' 
+            request.task.header.frame_id = 'odom' 
             request.task.waypoints = all_points
             request.task.segment_count=len(all_points) -1
             response = cost_path(request)
