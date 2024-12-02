@@ -1,0 +1,5 @@
+# Request
+trajectory_control_msgs/PlanningTask task
+---
+# Response
+nav_msgs/Path[] path_list
