@@ -146,11 +146,8 @@ class RobotStateNode:
         waypoint = [{Point.x}, {Point.y}, {Point.z}]
         rospy.loginfo(f"Simulating movement to location: {waypoint}. Publishing waypoint.")
 
-        # Initialize the WaypointPublisher and use it to publish the waypoint for navigation
-        waypoint_publisher = WaypointPublisher()
-
         # Publish the waypoint and start navigation
-        waypoint_publisher.publish_waypoint(waypoint, task_type=0)  # Assuming task_type=0 is normal task type
+        self.publish_waypoint(waypoint, task_type=0)  # Assuming task_type=0 is normal task type
 
         # You can also simulate a delay for the task if needed (e.g., waiting for navigation completion)
         rospy.sleep(3)
