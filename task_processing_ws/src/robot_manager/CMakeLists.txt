@@ -4,9 +4,11 @@ project(robot_manager)
 find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
+  nav_msgs
   geometry_msgs
   message_generation
   visualization_msgs
+  path_planner
 )
 
 add_service_files(
@@ -24,11 +26,12 @@ add_message_files(
 generate_messages(
   DEPENDENCIES
   std_msgs
+  nav_msgs
   geometry_msgs
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs message_runtime geometry_msgs visualization_msgs
+  CATKIN_DEPENDS rospy std_msgs message_runtime geometry_msgs visualization_msgs path_planner
 )
 
 catkin_install_python(PROGRAMS

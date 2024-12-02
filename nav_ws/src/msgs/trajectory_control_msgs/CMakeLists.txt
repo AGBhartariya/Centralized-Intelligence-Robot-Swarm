@@ -78,7 +78,8 @@ FILES
 ## Generate services in the 'srv' folder
 add_service_files(
    FILES
-   PathPlanning.srv   
+   PathPlanning.srv 
+   GetCostPath.srv  
 )
 
 ## Generate actions in the 'action' folder
