@@ -121,7 +121,8 @@ class RobotManager:
                 if temp < cost:
                     cost = temp
                     obj_loc = objectlocation
-
+        else:
+            cost=self.computeCost(objectlocation, tasklocations, robot_id, task_desc)
         return {"cost": cost, "object_location": obj_loc}  # Example cost function
 
 
