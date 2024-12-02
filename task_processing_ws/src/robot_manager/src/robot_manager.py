@@ -2,7 +2,8 @@
 import rospy
 from trajectory_control_msgs.msg import PlanningTask, Path
 from nav_msgs.msg import Path
-
+import tf
+from geometry_msgs.msg import Point
 from robot_manager.srv import GetFreeRobots, GetTaskCost
 from robot_manager.srv import GetState  # Add GetState service for each robot
 import numpy as np
@@ -55,13 +56,39 @@ class RobotManager:
             "robot_ids": self.free_robots,
         }
 
+    def getRobotPos(self,robot_id):
+        listener = tf.TransformListener()
+        try:
+            # Wait for the transform to become available
+            listener.waitForTransform("odom", f"{robot_id}/base_link", rospy.Time(0), rospy.Duration(5.0))
+            (trans, rot) = listener.lookupTransform("odom", f"{robot_id}/base_link", rospy.Time(0))
+            return Point(x=trans[0],y=trans[1],z=trans[2])
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            rospy.logerr("Error getting transform: %s", e)
+            return None
+        
+    
     def computeCost(self, objectlocation, task_location, robot_id, task_desc):
         #implement cost function for all scenarios
         rospy.wait_for_service('cost_path')
         try:
             cost_path = rospy.ServiceProxy('cost_path', GetCostPath)
             request = GetCostPathRequest()
-            request.task = objectlocation 
+            robot_pos = self.getRobotPos(robot_id)
+            obj_point=objectlocation.pose.position
+            task_point=[]
+            for loc in task_location:
+                task_point.append(loc.pose.position)   
+            if task_desc==1:
+                all_points=[robot_pos]+[obj_point]+task_point
+            elif task_desc==2 or task_desc==3 or task_desc==5:
+                all_points=[robot_pos] + task_point
+            elif task_desc==4:
+                all_points=[robot_pos]+[obj_point]
+
+            request.task.header.frame_id = 'map' 
+            request.task.waypoints = all_points
+            request.task.segment_count=len(all_points) -1
             response = cost_path(request)
             total_cost=0
             for path in response.path_list:
@@ -73,11 +100,12 @@ class RobotManager:
 
                     distance = ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
                     total_cost += distance
+            return total_cost
 
         except rospy.ServiceException as e:
            print("Service call failed: %s"%e)
+           return None
         
-        return total_cost
 
     def handle_get_task_cost(self, req):
         task_desc = req.task_type  # Category of task i.e. x1
@@ -87,11 +115,12 @@ class RobotManager:
 
         cost = np.inf
         obj_loc = None
-        for objectlocation in objectlocations:
-            temp = self.computeCost(objectlocation, tasklocations, robot_id, task_desc)
-            if temp < cost:
-                cost = temp
-                obj_loc = objectlocation
+        if (task_desc==1 or task_desc==4):
+            for objectlocation in objectlocations:
+                temp = self.computeCost(objectlocation, tasklocations, robot_id, task_desc)
+                if temp < cost:
+                    cost = temp
+                    obj_loc = objectlocation
 
         return {"cost": cost, "object_location": obj_loc}  # Example cost function
 

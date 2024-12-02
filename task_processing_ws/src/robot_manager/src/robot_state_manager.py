@@ -1,14 +1,18 @@
 #!/usr/bin/env python
 
 import rospy
+from trajectory_control_msgs.msg import PlanningTask, Path
+from nav_msgs.msg import Path
 from std_msgs.msg import Bool
 from robot_manager.srv import GetState
 from geometry_msgs.msg import Point
 from visualization_msgs.msg import InteractiveMarkerUpdate
 import random
 import time
+import tf
 import numpy as np
 from scipy.optimize import linear_sum_assignment
+from trajectory_control_msgs.srv import GetCostPath, GetCostPathRequest
 
 
 class RobotStateManager:
@@ -117,9 +121,30 @@ class RobotStateManager:
 
     def calculate_cost(self, robot_position, goal_position):
         # Compute Euclidean distance as the cost
-        dx = robot_position.x - goal_position.x
-        dy = robot_position.y - goal_position.y
-        return (dx**2 + dy**2) ** 0.5
+        rospy.wait_for_service('cost_path')
+        try:
+            cost_path = rospy.ServiceProxy('cost_path', GetCostPath)
+            request = GetCostPathRequest()
+            goal_point=goal_position.pose.position
+            robot_point = robot_position.pose.position
+            request.task.waypoints = [robot_point, goal_point] 
+            request.task.header.frame_id='map'
+            request.task.segment_count=1
+            response = cost_path(request)
+            total_cost=0
+            for path in response.path_list:
+                poses = path.poses
+                for i in range(len(poses) - 1):
+                    # Extract positions of successive waypoints
+                    p1 = poses[i].pose.position
+                    p2 = poses[i + 1].pose.position
+
+                    distance = ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
+                    total_cost += distance
+        except rospy.ServiceException as e:
+           print("Service call failed: %s"%e)
+        
+        return total_cost
 
     def assign_points(self, event):
         self.patrol = True
