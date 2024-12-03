@@ -169,6 +169,7 @@ def assign_tasks():
                 task = tasks[task_idx]
                 robot_id = free_robot_ids[robot_idx]
                 assigned_location = task_object_locations[task_idx][robot_idx]
+                # TODO
                 rospy.loginfo(
                     f"Assigned task '{task.description}' to robot {robot_id} at location {assigned_location}."
                 )

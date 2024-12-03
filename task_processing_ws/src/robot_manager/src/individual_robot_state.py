@@ -278,6 +278,7 @@ class RobotStateNode:
         self.state = self.default_state
 
     def publish_waypoint(self, location):
+        # TODO
         waypoint_msg = Point(x=location.x, y=location.y, z=location.z)
         self.task_pub.publish(waypoint_msg)
 
@@ -302,19 +303,23 @@ class RobotStateNode:
         """
         Stub for object detection logic. Replace with actual implementation.
         """
+        # TODO
         rospy.loginfo(f"Detecting object {task_object} (stubbed logic).")
         return False  # Replace with actual detection logic
 
-    def update_database(self, task_object, found):
+    def update_database(self, task_object, task_location, status):
         """
         Stub for database update logic. Replace with actual implementation.
         """
-        rospy.loginfo(f"Updating database: Object {task_object}, Found: {found} (stubbed logic).")
+        # TODO
+        return
 
     def leave_object_at_current_location(self):
+        # TODO
         rospy.logwarn("Leaving object at current location.")
 
     def abort_task(self, reason):
+        # TODO
         rospy.logerr(f"Task aborted: {reason}")
 
     def get_state_service(self, req):
