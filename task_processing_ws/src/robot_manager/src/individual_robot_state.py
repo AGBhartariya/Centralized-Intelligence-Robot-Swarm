@@ -204,8 +204,8 @@ class RobotStateNode:
                 self.cleanup_after_task()
 
         elif task_type == 5:  # Go to Location
-            if not self.navigate_to_point(location_1):
-                self.abort_task(f"Failed to reach location {location_1}.")
+            if not self.navigate_to_point(location_2):
+                self.abort_task(f"Failed to reach location {location_2}.")
                 self.cleanup_after_task()
                 return
         
