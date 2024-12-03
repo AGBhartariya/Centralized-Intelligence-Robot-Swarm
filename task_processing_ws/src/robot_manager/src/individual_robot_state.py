@@ -1,273 +1,260 @@
-#!/usr/bin/env python
-
 import math
 import tf
 import rospy
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Int32
 from robot_manager.srv import GetState, GetStateResponse
 from robot_manager.msg import Task
 from geometry_msgs.msg import Twist, Point
-from trajectory_control_msgs.msg import PlanningTask 
-
+from trajectory_control_msgs.msg import PlanningTask
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
-        # Initialize the node
         rospy.init_node("robot_state", anonymous=True)
 
-        # Robot namespace
         self.namespace = robot_namespace
 
         # Robot state: 0 : Idle, 1 : Exploring, 2 : Patrolling, 3 : Tasking, 4 : Charging
         self.default_state = 1
         self.state = self.default_state
+        self.tf_listener = tf.TransformListener()
+        rospy.sleep(1)
 
-        self.tf_listener = tf.TransformListener()  # TF listener to get transforms
-        rospy.sleep(1) 
-
-        # Battery threshold for low battery state
         self.battery_threshold = 10
-        self.full_battery = 100
+        self.battery_level = 100
+        self.retry_attempts = 3  # Maximum retries for a task
+        self.timeout_duration = 180  # Timeout duration in seconds
+        self.tolerance = 0.5  # Distance tolerance to consider "reached"
+        self.rotation_attempts = 5  # Number of rotations at the location
 
-        # Publishers and Subscribers
-        self.task_sub = rospy.Subscriber(
-            f"{self.namespace}/start_task", Task, self.start_task_callback
-        )
+        self.task_sub = rospy.Subscriber(f"{self.namespace}/start_task", Task, self.execute_task)
+        self.get_state_srv = rospy.Service(f"{self.namespace}/get_state", GetState, self.get_state_service)
+        self.patrol_sub = rospy.Subscriber(f"{self.namespace}/patrol_waypoint", Point, self.go_to_patrol_waypoint)
+        self.isPatrolsub = rospy.Subscriber("isPatrolling", Bool, self.isPatroCallback)
+        
+        self.battery_sub = rospy.Subscriber(f"{self.namespace}/battery_level", Int32, self.battery_callback)
+        self.expl_pause_pub = rospy.Publisher(f"{self.namespace}/expl_pause_topic", Bool, queue_size=1)
 
-        # Service for getting the robot's state
-        self.get_state_srv = rospy.Service(
-            f"{self.namespace}/get_state", GetState, self.get_state_service
-        )
+        self.cmd_vel_pub = rospy.Publisher(f"{self.namespace}/cmd_vel", Twist, queue_size=1)
+        self.task_pub = rospy.Publisher(f"{self.namespace}/planner/tasks/append", PlanningTask, queue_size=10)
+        self.cancel_pub = rospy.Publisher(f"{self.namespace}/planner/tasks/remove", PlanningTask, queue_size=10)
 
-        # Publisher to indicate exploration status
-        self.expl_marker_pub = rospy.Publisher(
-            f"/{self.namespace}/expl_marker_update/update", Bool, queue_size=1
-        )
+        rospy.loginfo(f"RobotStateNode for namespace '{self.namespace}' initialized.")
 
-        # Publisher to stop the robot when charging (sending zero velocity)
-        self.cmd_vel_pub = rospy.Publisher(
-            f"/{self.namespace}/battery/cmd_vel", Twist, queue_size=1
-        )
-
-        # Start with publishing False (indicating not in exploration)
-        self.expl_marker_pub.publish(False)
-
-        # Start with a subscriber to check with exploration is finished
-        self.patrol_sub = rospy.Subscriber("/isPatrolling", Bool, self.patrol_callback)
-
-        # Start the battery checking loop
-        self.check_battery_rate = (
-            rospy.get_param("~battery_check_interval", 1) * 60
-        )  # in seconds (default to 1 min)
-        rospy.Timer(rospy.Duration(self.check_battery_rate), self.check_battery)
-
-        # Publishers for the topics
-        self.waypoint_pub = rospy.Publisher(f"/{self.namespace}/planner/waypoints/server", Point, queue_size=10)
-        self.task_pub = rospy.Publisher(f"/{self.namespace}/planner/tasks/append", PlanningTask, queue_size=10)
-        self.cancel_pub = rospy.Publisher(f"/{self.namespace}/planner/tasks/remove", PlanningTask, queue_size=10)
-
-        rospy.loginfo("Waypoint Publisher Node Initialized!")
-
-        rospy.loginfo(
-            f"RobotStateNode for namespace '{self.namespace}' initialized. Default state: '{self.state}'"
-        )
-
-        self.timeout_exceeded = False  # Variable to track timeout
-        self.timer = None  # To store the timer instance
-
-    def timeout_callback(self, event, task_object):
+    def battery_callback(self, msg):
         """
-        Callback triggered when the task timeout is exceeded.
+        Update the battery level based on the message received.
         """
-        self.timeout_exceeded = True
-        rospy.logwarn(f"Timeout exceeded for task involving {task_object}. Stopping current operation.")
+        self.battery_level = msg.data
+        rospy.loginfo(f"Battery level updated: {self.battery_level}%")
 
-    def publish_waypoint(self, waypoint, task_type):
-        # Cancel the previous task
-        self.cancel_current_task()
+        if self.battery_level <= self.battery_threshold:
+            if self.state != 3 or self.state != 4:  # If the robot is not executing a task
+                rospy.logwarn("Battery level critical and not executing a task. Returning to charging station.")
+                self.return_to_charging_station()
+            else:
+                rospy.logwarn("Battery level critical during task execution. Will return to charging station after task completion.")
 
-        # Publish the waypoint to /ugv1/planner/waypoints/server/update
-        rospy.loginfo(f"Publishing waypoint to /ugv1/planner/waypoints/server: {waypoint}")
-        self.waypoint_pub.publish(waypoint)
+    def return_to_charging_station(self):
+        """
+        Navigate the robot back to a predefined charging station.
+        """
+        self.state = 4
+        charging_station_location = Point(0, 0, 0)  # Replace with actual coordinates
+        if self.navigate_to_point(charging_station_location):
+            rospy.loginfo("Successfully reached charging station.")
+            self.expl_pause_pub.publish(True)  # Pause exploration
 
-        # Publish a task for navigation to the waypoint
-        rospy.loginfo(f"Publishing waypoint to /ugv1/planner/tasks/append for navigation: {waypoint}")
-        task_msg = PlanningTask()  # Create a PlanningTask message
-        task_msg.name = "navigate_to_waypoint"
-        task_msg.segment_id = 1  # Set a unique segment ID
-        task_msg.segment_count = 1  # Only one waypoint in this task
-        task_msg.type = task_type  # Either normal or cyclic type
-        task_msg.waypoints = [waypoint]  # Add the waypoint to the waypoints array
+            # Simulate charging until battery is full
+            while self.battery_level < self.full_battery:
+                self.publish_zero_cmd_vel()
+                rospy.sleep(1)  # Wait for battery to charge (simulated)
 
-        # Publish the task to the planner
-        self.task_pub.publish(task_msg)
+            rospy.loginfo("Battery fully charged.")
+            self.expl_pause_pub.publish(False)  # Resume exploration
+            self.state = self.default_state
+        else:
+            rospy.logwarn("Failed to reach charging station.")
 
-        # Timeout status
-        self.timeout_exceeded = False  # Class attribute to track timeout
-        self.timer = None  # Timer object reference
+    def publish_zero_cmd_vel(self):
+        """
+        Publish zero velocity as a failsafe.
+        """
+        zero_vel = Twist()
+        self.cmd_vel_pub.publish(zero_vel)
+
+    def isPatroCallback(self, msg):
+        if msg.data:
+            self.default_state = 0
 
     def execute_task(self, task):
-        """
-        Executes a task based on its type.
-        """
-        rospy.loginfo(f"Executing task: {task}")
-        self.state = 3  # Tasking state
-
-        task_type = task.task_type  # Task type
-        task_object = task.task_object  # Task object
-        location_1 = task.location_1  # x3
-        location_2 = task.location_2  # x4
-
-        k = 180  # Timeout duration in seconds
-
+        if self.battery_level <= self.battery_threshold:
+            self.abort_task("Battery too low to execute task.")
+            return
+        
+        task_type, task_object, location_1, location_2 = task.task_type, task.task_object, task.location_1, task.location_2
+        retry_count = 0
+        self.state = 3
         if task_type == 1:  # Bring Object
-            rospy.loginfo(f"Executing 'Bring Object' task: Bringing {task_object} to {location_1.position}.")
-            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
-            self.goToPoint(location_1)
-            self.timer.shutdown()
-            if self.timeout_exceeded:
-                rospy.loginfo(f"Reassigning 'Bring Object' task: {task_object} to {location_1.position}.")
+            if not self.navigate_to_point(location_1):
+                self.abort_task(f"Failed to reach location {location_1} to pick up {task_object}.")
                 return
 
+            if not self.perform_rotation_check(task_object):
+                self.update_database(task_object, found=False)
+                self.abort_task(f"Object {task_object} not found at {location_1}.")
+                return
+
+            if not self.navigate_to_point(location_2):
+                if not self.navigate_to_point(location_1):
+                    self.abort_task(f"Failed to return {task_object} to {location_1}.")
+                    return
+
+                self.leave_object_at_current_location()
+                self.abort_task(f"Task aborted: Unable to deliver {task_object} to {location_2}.")
+
         elif task_type == 2:  # Inspect/Interact
-            rospy.loginfo(f"Executing 'Inspect/Interact' task: Interacting with {task_object} at {location_1.position}.")
-            self.goToPoint(location_1)
-            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
-            self.timer.shutdown()
-            if self.timeout_exceeded:
-                rospy.loginfo(f"Reassigning 'Inspect/Interact' task: {task_object} to {location_1.position}.")
+            if not self.navigate_to_point(location_1):
+                self.abort_task(f"Failed to reach location {location_1} to interact with {task_object}.")
+                return
+
+            if not self.perform_rotation_check(task_object):
+                self.update_database(task_object, found=False)
+                self.abort_task(f"Object {task_object} not found at {location_1}.")
                 return
 
         elif task_type == 3:  # Move Object
-            rospy.loginfo(f"Executing 'Move Object' task: Moving {task_object} from {location_1.position} to {location_2.position}.")
-            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
-            self.goToPoint(location_1)
-            if self.timeout_exceeded:
-                rospy.loginfo(f"Reassigning 'Move Object' task: {task_object} from {location_1.position} to {location_2.position}.")
-                self.timer.shutdown()
+            if not self.navigate_to_point(location_1):
+                self.abort_task(f"Failed to reach location {location_1} to pick up {task_object}.")
                 return
-            self.goToPoint(location_2)
-            self.timer.shutdown()
-            if self.timeout_exceeded:
-                rospy.loginfo(f"Reassigning 'Move Object' task: {task_object} from {location_1.position} to {location_2.position}.")
+
+            if not self.perform_rotation_check(task_object):
+                self.update_database(task_object, found=False)
+                self.abort_task(f"Object {task_object} not found at {location_1}.")
                 return
+
+            if not self.navigate_to_point(location_2):
+                if not self.navigate_to_point(location_1):
+                    self.abort_task(f"Failed to return {task_object} to {location_1}.")
+                    return
+
+                self.leave_object_at_current_location()
+                self.abort_task(f"Task aborted: Unable to move {task_object} to {location_2}.")
 
         elif task_type == 4:  # Find Object
-            rospy.loginfo(f"Executing 'Find Object' task: Searching for {task_object}.")
-            self.goToPoint(location_1)
-            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
-            self.timer.shutdown()
-            if self.timeout_exceeded:
-                rospy.loginfo(f"Reassigning 'Find Object' task: Search {task_object} at {location_1.position}.")
+            if not self.navigate_to_point(location_1):
+                self.abort_task(f"Failed to reach search location {location_1}.")
                 return
 
-        elif task_type == 5 :
-            rospy.loginfo(f"Executing 'Go to location' task: Moving to location {location_1.position}")  
-            self.goToPoint(location_1)
-            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
-            self.timer.shutdown()
-            if self.timeout_exceeded:
-                rospy.loginfo(f"Reassigning 'Go to location' task: Moving to location {location_1.position}.")
-                return  
+            if not self.perform_rotation_check(task_object):
+                self.update_database(task_object, found=False)
+                self.abort_task(f"Object {task_object} not found.")
 
-        else:
-            rospy.logwarn(f"Unknown task type: {task_type}. Skipping task.")
+        elif task_type == 5:  # Go to Location
+            if not self.navigate_to_point(location_1):
+                self.abort_task(f"Failed to reach location {location_1}.")
+                return
 
-        # Task complete
-        rospy.loginfo(f"Task completed. Returning to default state: {self.default_state}.")
-        self.state = self.default_state
+        self.state = self.default_state  # Return to default state after task
+        if self.battery_level <= self.battery_threshold:
+            rospy.logwarn("Battery low after task. Returning to charging station.")
+            self.return_to_charging_station()
 
+        rospy.loginfo("Task completed successfully.")
 
-    def goToPoint(self, Point):
+    def navigate_to_point(self, location):
         """
-        Simulates movement to a location specified.
+        Navigate to the specified location within retry limits.
         """
-        waypoint = [{Point.x}, {Point.y}, {Point.z}]
-        rospy.loginfo(f"Simulating movement to location: {waypoint}. Publishing waypoint.")
+        for attempt in range(self.retry_attempts):
+            rospy.loginfo(f"Attempt {attempt + 1}/{self.retry_attempts} to navigate to {location}.")
+            self.publish_waypoint(location)
+            start_time = rospy.Time.now()
 
-        # Publish the waypoint and start navigation
-        self.publish_waypoint(waypoint, task_type=0)  # Assuming task_type=0 is normal task type
+            while (rospy.Time.now() - start_time).to_sec() < self.timeout_duration:
+                if self.is_within_tolerance(location):
+                    rospy.loginfo(f"Successfully reached location {location}.")
+                    return True
+                rospy.sleep(1)
 
-        # You can also simulate a delay for the task if needed (e.g., waiting for navigation completion)
-        rospy.sleep(3)
+        rospy.logwarn(f"Failed to reach location {location} after {self.retry_attempts} attempts.")
+        return False
 
-    # def calculate_distance_map_frame(self, target_x, target_y):
-    #     try:
-    #         # Get the robot's position in the "map" frame
-    #         (trans, _) = self.tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
-    #         robot_x, robot_y = trans[0], trans[1]
-    #         distance = math.sqrt((target_x - robot_x) ** 2 + (target_y - robot_y) ** 2)
-    #         return distance
-    #     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-    #         rospy.logwarn("TF lookup failed.")
-    #         return None
+    def perform_rotation_check(self, task_object):
+        """
+        Rotate at the current location to search for the specified object.
+        """
+        rospy.loginfo(f"Performing rotation check for object {task_object}.")
+        for _ in range(self.rotation_attempts):
+            self.start_rotation()
+            if self.detect_object(task_object):
+                rospy.loginfo(f"Object {task_object} found.")
+                return True
+
+        rospy.logwarn(f"Object {task_object} not found after {self.rotation_attempts} rotations.")
+        return False
+
+    def publish_waypoint(self, location):
+        waypoint_msg = Point(x=location.x, y=location.y, z=location.z)
+        self.task_pub.publish(waypoint_msg)
+
+    def is_within_tolerance(self, location):
+        try:
+            (trans, _) = self.tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
+            distance = math.sqrt((location.x - trans[0]) ** 2 + (location.y - trans[1]) ** 2)
+            return distance <= self.tolerance
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+            rospy.logwarn("TF lookup failed.")
+            return False
 
     def start_rotation(self):
-        """
-        Rotates the robot on its axis.
-        """
-        rate = rospy.Rate(10)  # 10 Hz loop rate
         cmd = Twist()
-        cmd.linear.x = 0.0
-        cmd.angular.z = 0.5  # Rotate at a constant angular velocity
-
-        rospy.loginfo("Rotating on axis.")
-        for _ in range(50):  # Rotate for a fixed duration (adjust as needed)
+        cmd.angular.z = 0.5
+        rate = rospy.Rate(10)
+        for _ in range(10):
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
 
-    def check_battery(self, event):
-        # Simulate battery checking; retrieve the battery level from ROS parameters
-        battery_level = rospy.get_param(
-            f"/{self.namespace}/battery", 100
-        )  # Default to 100% if not set
+    def detect_object(self, task_object):
+        """
+        Stub for object detection logic. Replace with actual implementation.
+        """
+        rospy.loginfo(f"Detecting object {task_object} (stubbed logic).")
+        return False  # Replace with actual detection logic
 
-        if self.state != 3:  # Don't check battery while performing a task
-            if battery_level < self.battery_threshold and self.state != 4:
-                rospy.logwarn(
-                    f"{self.namespace} battery low: {battery_level}%. Switching to Charging state."
-                )
-                self.state = 4
-                self.expl_marker_pub.publish(True)  # Indicating charging status
-            elif battery_level == self.full_battery and self.state == 4:
-                rospy.loginfo(
-                    f"{self.namespace} battery fully charged: {battery_level}%. Returning to default state."
-                )
-                self.state = self.default_state
-                self.expl_marker_pub.publish(True)  # Indicating back to exploration
+    def update_database(self, task_object, found):
+        """
+        Stub for database update logic. Replace with actual implementation.
+        """
+        rospy.loginfo(f"Updating database: Object {task_object}, Found: {found} (stubbed logic).")
 
-    def publish_zero_velocity(self):
-        """Publish zero velocity to /cmd_vel when charging."""
-        if self.state == 4:  # Charging state
-            twist_msg = Twist()
-            # Twist message with zero linear and angular velocities
-            self.cmd_vel_pub.publish(twist_msg)
+    def leave_object_at_current_location(self):
+        rospy.logwarn("Leaving object at current location.")
+
+    def abort_task(self, reason):
+        rospy.logerr(f"Task aborted: {reason}")
 
     def get_state_service(self, req):
-        rospy.loginfo(
-            f"Robot '{self.namespace}' state requested. Current state: '{self.state}'"
-        )
         return GetStateResponse(self.state)
 
+    def go_to_patrol_waypoint(self, waypoint):
+        """
+        Navigate to a patrol waypoint received from the topic.
+        """
+        self.state = 2
+        rospy.loginfo(f"Received patrol waypoint: {waypoint}")
+        if self.navigate_to_point(waypoint):
+            rospy.loginfo(f"Successfully reached patrol waypoint {waypoint}.")
+        else:
+            rospy.logwarn(f"Failed to reach patrol waypoint {waypoint}.")
+        self.state = self.default_state
 
 def main():
     try:
-        # Retrieve the namespace from the parameter server or default to 'robot'
         robot_namespace = rospy.get_param("~robot_namespace", "robot")
-
-        # Initialize the RobotStateNode
         robot_state_node = RobotStateNode(robot_namespace)
-
-        # Set the timer to publish zero velocity at 50Hz if charging
-        rospy.Timer(
-            rospy.Duration(1.0 / 50), robot_state_node.publish_zero_velocity
-        )  # 50 Hz
-
-        # Keep the node running
         rospy.spin()
     except rospy.ROSInterruptException:
-        rospy.loginfo("RobotStateNode terminated.")
-
+        rospy.loginfo("RobotStateNode terminated")
 
 if __name__ == "__main__":
     main()
