@@ -3,11 +3,37 @@
 import rospy
 import numpy as np
 import open3d as o3d
-from sensor_msgs.msg import Image, PointCloud2
+from sensor_msgs.msg import Image, CameraInfo, PointCloud2
 from geometry_msgs.msg import Pose
 from cv_bridge import CvBridge
 np.float = float  # Temporary alias for compatibility
 import ros_numpy
+import cv2
+
+def project_point_to_image(point_3d, camera_matrix):
+    """Project a 3D point to the 2D image plane using the camera intrinsic matrix."""
+    x, y, z = point_3d
+    u = int((camera_matrix[0, 0] * x + camera_matrix[0, 2] * z) / z)
+    v = int((camera_matrix[1, 1] * y + camera_matrix[1, 2] * z) / z)
+    return (u, v)
+
+def visualize_pose(rgb_image, bbox, centroid, orientation, camera_matrix):
+    """Overlay the bounding box and pose visualization on the RGB image."""
+    # Draw the bounding box
+    x_min, y_min, x_max, y_max = bbox
+    cv2.rectangle(rgb_image, (x_min, y_min), (x_max, y_max), (0, 255, 0), 2)
+
+    # Project the centroid onto the image
+    centroid_2d = project_point_to_image(centroid, camera_matrix)
+    cv2.circle(rgb_image, centroid_2d, 5, (0, 0, 255), -1)
+
+    # Visualize orientation (example: draw one principal axis)
+    axis_length = 0.05  # Adjust length for visualization
+    axis_vector = orientation[:, 0] * axis_length  # First principal axis
+    end_point = project_point_to_image(centroid + axis_vector, camera_matrix)
+    cv2.line(rgb_image, centroid_2d, end_point, (255, 0, 0), 2)
+
+    return rgb_image
 
 class PoseEstimator:
     def __init__(self):
@@ -17,6 +43,7 @@ class PoseEstimator:
         self.rgb_sub = rospy.Subscriber("/realsense/color/image_raw", Image, self.rgb_callback)
         self.depth_sub = rospy.Subscriber("/realsense/depth/image_rect_raw", Image, self.depth_callback)
         self.pc_sub = rospy.Subscriber("/realsense/depth/color/points", PointCloud2, self.pc_callback)
+        self.camera_info_sub = rospy.Subscriber("/realsense/color/camera_info", CameraInfo, self.camera_info_callback)
 
         # Publisher
         self.pose_pub = rospy.Publisher("/object_pose", Pose, queue_size=10)
@@ -26,6 +53,7 @@ class PoseEstimator:
         self.rgb_image = None
         self.depth_image = None
         self.pointcloud = None
+        self.camera_matrix = None
 
         # Bounding box coordinates (example, replace with actual detection results)
         self.bbox = [100, 150, 200, 250]  # [x_min, y_min, x_max, y_max]
@@ -39,20 +67,27 @@ class PoseEstimator:
     def pc_callback(self, msg):
         self.pointcloud = ros_numpy.point_cloud2.pointcloud2_to_array(msg)
 
+    def camera_info_callback(self, msg):
+        # Extract the camera matrix from the CameraInfo message
+        self.camera_matrix = np.array(msg.K).reshape(3, 3)
+
     def extract_points_from_bbox(self):
-        if self.rgb_image is None or self.depth_image is None or self.pointcloud is None:
-            rospy.logwarn("Waiting for inputs (RGB, Depth, PointCloud)...")
+        if self.rgb_image is None or self.depth_image is None or self.pointcloud is None or self.camera_matrix is None:
+            rospy.logwarn("Waiting for inputs (RGB, Depth, PointCloud, Camera Info)...")
             return None
 
         x_min, y_min, x_max, y_max = self.bbox
         points = []
+
+        # Intrinsic parameters from the camera matrix
+        fx, fy = self.camera_matrix[0, 0], self.camera_matrix[1, 1]
+        cx, cy = self.camera_matrix[0, 2], self.camera_matrix[1, 2]
+
         for v in range(y_min, y_max):
             for u in range(x_min, x_max):
                 z = self.depth_image[v, u]
                 if z > 0:  # Ignore invalid depths
-                    # Convert pixel to 3D points using intrinsic parameters (example parameters)
-                    fx, fy = 525.0, 525.0  # Focal lengths
-                    cx, cy = 319.5, 239.5  # Principal points
+                    # Convert pixel to 3D points using intrinsic parameters
                     x = (u - cx) * z / fx
                     y = (v - cy) * z / fy
                     points.append([x, y, z])
@@ -99,7 +134,6 @@ class PoseEstimator:
 
         self.pose_pub.publish(pose_msg)
         rospy.loginfo("Published Pose: Position: {} Orientation: {}".format(centroid, q))
-        rospy.sleep(2)
 
     @staticmethod
     def rotation_matrix_to_quaternion(rot_matrix):
@@ -117,7 +151,13 @@ class PoseEstimator:
             if points is not None:
                 pose = self.estimate_pose(points)
                 if pose:
-                    self.publish_pose(*pose)
+                    centroid, orientation = pose
+                    self.publish_pose(centroid, orientation)
+                                # Visualize and display the pose
+                    if self.rgb_image is not None:
+                        vis_image = visualize_pose(self.rgb_image.copy(), self.bbox, centroid, orientation, self.camera_matrix)
+                        cv2.imshow("Pose Visualization", vis_image)
+                        cv2.waitKey(1)
             rate.sleep()
 
 
