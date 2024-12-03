@@ -72,6 +72,16 @@ class RobotStateNode:
             f"RobotStateNode for namespace '{self.namespace}' initialized. Default state: '{self.state}'"
         )
 
+        self.timeout_exceeded = False  # Variable to track timeout
+        self.timer = None  # To store the timer instance
+
+    def timeout_callback(self, event, task_object):
+        """
+        Callback triggered when the task timeout is exceeded.
+        """
+        self.timeout_exceeded = True
+        rospy.logwarn(f"Timeout exceeded for task involving {task_object}. Stopping current operation.")
+
     def publish_waypoint(self, waypoint, task_type):
         # Cancel the previous task
         self.cancel_current_task()
@@ -92,19 +102,9 @@ class RobotStateNode:
         # Publish the task to the planner
         self.task_pub.publish(task_msg)
 
-    def patrol_callback(self, msg):
-        if msg:
-            self.default_state = 0
-
-    def start_task_callback(self, task):
-        """
-        Callback to execute tasks when a task is received.
-        param msg: Task message containing [p, [x1, x2], [x3, x4]]
-        """
-        rospy.loginfo(f"Received task: {task}")
-
-        # Directly process the received task (no priority queue, just process the task)
-        self.execute_task(task)
+        # Timeout status
+        self.timeout_exceeded = False  # Class attribute to track timeout
+        self.timer = None  # Timer object reference
 
     def execute_task(self, task):
         """
@@ -118,19 +118,58 @@ class RobotStateNode:
         location_1 = task.location_1  # x3
         location_2 = task.location_2  # x4
 
+        k = 180  # Timeout duration in seconds
+
         if task_type == 1:  # Bring Object
             rospy.loginfo(f"Executing 'Bring Object' task: Bringing {task_object} to {location_1.position}.")
+            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
             self.goToPoint(location_1)
+            self.timer.shutdown()
+            if self.timeout_exceeded:
+                rospy.loginfo(f"Reassigning 'Bring Object' task: {task_object} to {location_1.position}.")
+                return
+
         elif task_type == 2:  # Inspect/Interact
             rospy.loginfo(f"Executing 'Inspect/Interact' task: Interacting with {task_object} at {location_1.position}.")
             self.goToPoint(location_1)
+            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
+            self.timer.shutdown()
+            if self.timeout_exceeded:
+                rospy.loginfo(f"Reassigning 'Inspect/Interact' task: {task_object} to {location_1.position}.")
+                return
+
         elif task_type == 3:  # Move Object
             rospy.loginfo(f"Executing 'Move Object' task: Moving {task_object} from {location_1.position} to {location_2.position}.")
+            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
             self.goToPoint(location_1)
+            if self.timeout_exceeded:
+                rospy.loginfo(f"Reassigning 'Move Object' task: {task_object} from {location_1.position} to {location_2.position}.")
+                self.timer.shutdown()
+                return
             self.goToPoint(location_2)
+            self.timer.shutdown()
+            if self.timeout_exceeded:
+                rospy.loginfo(f"Reassigning 'Move Object' task: {task_object} from {location_1.position} to {location_2.position}.")
+                return
+
         elif task_type == 4:  # Find Object
             rospy.loginfo(f"Executing 'Find Object' task: Searching for {task_object}.")
-            self.simulate_search(task_object)
+            self.goToPoint(location_1)
+            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
+            self.timer.shutdown()
+            if self.timeout_exceeded:
+                rospy.loginfo(f"Reassigning 'Find Object' task: Search {task_object} at {location_1.position}.")
+                return
+
+        elif task_type == 5 :
+            rospy.loginfo(f"Executing 'Go to location' task: Moving to location {location_1.position}")  
+            self.goToPoint(location_1)
+            self.timer = rospy.Timer(rospy.Duration(k), lambda event: self.timeout_callback(event, task_object), oneshot=True)
+            self.timer.shutdown()
+            if self.timeout_exceeded:
+                rospy.loginfo(f"Reassigning 'Go to location' task: Moving to location {location_1.position}.")
+                return  
+
         else:
             rospy.logwarn(f"Unknown task type: {task_type}. Skipping task.")
 
@@ -152,16 +191,16 @@ class RobotStateNode:
         # You can also simulate a delay for the task if needed (e.g., waiting for navigation completion)
         rospy.sleep(3)
 
-    def calculate_distance_map_frame(self, target_x, target_y):
-        
-        try:
-            # Get the robot's position in the "map" frame
-            (trans, _) = self.tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
-            robot_x, robot_y = trans[0], trans[1]
-            return math.sqrt((robot_x - target_x)**2 + (robot_y - target_y)**2)
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
-            rospy.logwarn("TF lookup failed, returning infinite distance.")
-            return float('inf')
+    # def calculate_distance_map_frame(self, target_x, target_y):
+    #     try:
+    #         # Get the robot's position in the "map" frame
+    #         (trans, _) = self.tf_listener.lookupTransform("map", "base_link", rospy.Time(0))
+    #         robot_x, robot_y = trans[0], trans[1]
+    #         distance = math.sqrt((target_x - robot_x) ** 2 + (target_y - robot_y) ** 2)
+    #         return distance
+    #     except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException):
+    #         rospy.logwarn("TF lookup failed.")
+    #         return None
 
     def start_rotation(self):
         """
