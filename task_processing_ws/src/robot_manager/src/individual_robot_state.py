@@ -3,7 +3,7 @@ import tf
 import rospy
 from std_msgs.msg import Bool, Int32
 from robot_manager.srv import GetState, GetStateResponse
-from robot_manager.msg import Task, DetectedObject
+from robot_manager.msg import Task, DetectedObject # TODO: Create Detected object Msg
 from geometry_msgs.msg import Twist, Point
 from trajectory_control_msgs.msg import PlanningTask
 
