@@ -124,11 +124,13 @@ class ObjectDetectorPoseEstimator:
 
         # Run YOLO detection
         results = self.model(self.rgb_image)
+        detected = False  # Track if any detection occurred
 
         for result in results:
             for box in result.boxes:
                 confidence = box.conf
                 if confidence >= self.confidence_threshold:
+                    detected = True
                     bbox = box.xyxy.int().tolist()[0]
                     class_idx = int(box.cls.item())  # Convert tensor to integer
                     label = result.names[class_idx]
@@ -159,13 +161,19 @@ class ObjectDetectorPoseEstimator:
                             label_msg.data = class_idx
                             self.label_pub.publish(label_msg)
 
-                            rospy.loginfo(f"Detected {label} with pose: {pose_msg}")
+                            # rospy.loginfo(f"Detected {label} with pose: {pose_msg}")
 
                             # Visualize pose if parameter is true
                             if self.visualize_detected_pose:
                                 visualized_image = self.visualize_pose(bbox, centroid)
                                 image_msg = self.bridge.cv2_to_imgmsg(visualized_image, "bgr8")
                                 self.image_pub.publish(image_msg)
+
+        # If no detections, publish the unaltered RGB image
+        if not detected:
+            rospy.loginfo("No detections found. Publishing original image.")
+            image_msg = self.bridge.cv2_to_imgmsg(self.rgb_image, "bgr8")
+            self.image_pub.publish(image_msg)
 
 if __name__ == "__main__":
     try:
