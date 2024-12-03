@@ -26,7 +26,7 @@ Where:
 
 2. **Inspect/Interact:**  
    **x1 = 2**  
-   **Description:** Interact with or inspect an object of type **x2** at location **x4**.
+   **Description:** Interact with or inspect an object of type **x2** at location **x3**.
 
 3. **Move Object:**  
    **x1 = 3**  

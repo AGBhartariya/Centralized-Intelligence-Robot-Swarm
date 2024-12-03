@@ -6,6 +6,7 @@ import open3d as o3d
 from sensor_msgs.msg import Image, PointCloud2
 from geometry_msgs.msg import Pose
 from cv_bridge import CvBridge
+np.float = float  # Temporary alias for compatibility
 import ros_numpy
 
 class PoseEstimator:
@@ -13,9 +14,9 @@ class PoseEstimator:
         rospy.init_node("pose_estimator", anonymous=True)
 
         # Subscribers
-        self.rgb_sub = rospy.Subscriber("/camera/color/image_raw", Image, self.rgb_callback)
-        self.depth_sub = rospy.Subscriber("/camera/depth/image_raw", Image, self.depth_callback)
-        self.pc_sub = rospy.Subscriber("/camera/depth/points", PointCloud2, self.pc_callback)
+        self.rgb_sub = rospy.Subscriber("/realsense/color/image_raw", Image, self.rgb_callback)
+        self.depth_sub = rospy.Subscriber("/realsense/depth/image_rect_raw", Image, self.depth_callback)
+        self.pc_sub = rospy.Subscriber("/realsense/depth/color/points", PointCloud2, self.pc_callback)
 
         # Publisher
         self.pose_pub = rospy.Publisher("/object_pose", Pose, queue_size=10)
@@ -45,7 +46,6 @@ class PoseEstimator:
 
         x_min, y_min, x_max, y_max = self.bbox
         points = []
-
         for v in range(y_min, y_max):
             for u in range(x_min, x_max):
                 z = self.depth_image[v, u]
@@ -99,6 +99,7 @@ class PoseEstimator:
 
         self.pose_pub.publish(pose_msg)
         rospy.loginfo("Published Pose: Position: {} Orientation: {}".format(centroid, q))
+        rospy.sleep(2)
 
     @staticmethod
     def rotation_matrix_to_quaternion(rot_matrix):
