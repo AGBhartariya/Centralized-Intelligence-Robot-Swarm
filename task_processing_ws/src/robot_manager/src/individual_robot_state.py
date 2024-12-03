@@ -280,7 +280,13 @@ class RobotStateNode:
     def publish_waypoint(self, location):
         # TODO
         waypoint_msg = Point(x=location.x, y=location.y, z=location.z)
-        self.task_pub.publish(waypoint_msg)
+        task_msg = PlanningTask()
+        task_msg.name = "navigate_to_waypoint"
+        task_msg.segment_id = 1  # Set a unique segment ID
+        task_msg.segment_count = 1  # Only one waypoint in this task
+        task_msg.type = 0  # Either normal or cyclic type
+        task_msg.waypoints = [waypoint_msg]
+        self.task_pub.publish(task_msg)
 
     def is_within_tolerance(self, location):
         try:
@@ -305,6 +311,7 @@ class RobotStateNode:
         """
         # TODO
         rospy.loginfo(f"Detecting object {task_object} (stubbed logic).")
+        self.detect_object_sub(task_object)
         return False  # Replace with actual detection logic
 
     def update_database(self, task_object, task_location, status):
@@ -320,6 +327,14 @@ class RobotStateNode:
 
     def abort_task(self, reason):
         # TODO
+        abort = PlanningTask()
+        abort.name = "abort_task"
+        abort.segment_id = 0
+        abort.segment_count = 0
+        abort.type = 0  # Assuming 0 (NORMAL) is used for cancel tasks
+        abort.waypoints = []  # Empty waypoints to indicate cancellation
+        self.cancel_pub.publish(abort)
+        self.cleanup_after_task()
         rospy.logerr(f"Task aborted: {reason}")
 
     def get_state_service(self, req):
