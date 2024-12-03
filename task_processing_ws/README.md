@@ -14,7 +14,7 @@ Where:
 
 - **x3** and **x4**: Cartesian coordinate locations. Each coordinate includes x, y, and z components.
 
-    - Use **0** (the numeric zero) for any location that is irrelevant.
+    - Use **0** value for any location that is irrelevant.
 
 ---
 
@@ -22,11 +22,11 @@ Where:
 
 1. **Bring Object:**  
    **x1 = 1**  
-   **Description:** Bring an object of type **x2** to a specific location **x3**.
+   **Description:** Bring an object of type **x2** to a specific location **x4**.
 
 2. **Inspect/Interact:**  
    **x1 = 2**  
-   **Description:** Interact with or inspect an object of type **x2** at location **x3**.
+   **Description:** Interact with or inspect an object of type **x2** at location **x4**.
 
 3. **Move Object:**  
    **x1 = 3**  
@@ -39,5 +39,5 @@ Where:
 
 5. **Go to Location:**
    **x1 = 5**
-   **Description:** Move to a specific location **x3**.
+   **Description:** Move to a specific location **x4**.
    **Special Note:** This task type is used for navigation to a specified place and in invariant of object type
