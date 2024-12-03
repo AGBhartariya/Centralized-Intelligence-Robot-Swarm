@@ -56,7 +56,7 @@ class PoseEstimator:
         self.camera_matrix = None
 
         # Bounding box coordinates (example, replace with actual detection results)
-        self.bbox = [100, 150, 200, 250]  # [x_min, y_min, x_max, y_max]
+        self.bbox = [100, 150, 200, 250]  # [x_min, y_min, x_max, y_max] # TODO: Put detected bounding box here
 
     def rgb_callback(self, msg):
         self.rgb_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
