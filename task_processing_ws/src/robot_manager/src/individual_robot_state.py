@@ -475,9 +475,16 @@ class RobotStateNode:
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
 
-    def update_database(
-        self, task_object: int, task_location: PoseStamped, status: str
-    ):
+    def detect_object(self, task_object):
+        """
+        Stub for object detection logic. Replace with actual implementation.
+        """
+        # TODO
+        rospy.loginfo(f"Detecting object {task_object} (stubbed logic).")
+        self.detect_object_sub(task_object)
+        return False  # Replace with actual detection logic
+
+    def update_database(self, task_object, object_location, status):
         """
         Stub for database update logic. Replace with actual implementation.
         """
