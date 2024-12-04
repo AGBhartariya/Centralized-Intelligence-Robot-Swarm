@@ -202,7 +202,7 @@ class RobotStateNode:
             return
 
         rospy.loginfo(
-            f"Object {self.current_object} found at {self.current_object_location}." # Found object
+            f"Object {self.current_object} found at {self.current_object_location}."  # Found object
         )
 
         # If task type is 1, pick up the object and proceed to location 2
@@ -234,7 +234,7 @@ class RobotStateNode:
         self.update_database(self.current_object, location_2, "free")
         self.cleanup_after_task()
         return
-    
+
     # Task type 2
     def interact_object(self, location_1: PoseStamped, location_2: PoseStamped):
         rospy.loginfo(f"Going to {location_1}")
@@ -259,12 +259,10 @@ class RobotStateNode:
             self.cleanup_after_task()
             return
         rospy.loginfo(f"Interacted with the object {self.current_object}")
-        self.update_database(
-            self.current_object, self.current_object_location, "free"
-        )
+        self.update_database(self.current_object, self.current_object_location, "free")
         self.cleanup_after_task()
         return
-    
+
     # Task type 3
     def move_object(self, location_1: PoseStamped, location_2: PoseStamped):
         rospy.loginfo(f"Going to {location_1} for getting {self.current_object}")
@@ -357,14 +355,12 @@ class RobotStateNode:
             return
 
         rospy.loginfo(
-            f"Object {self.current_object} found at {self.current_object_location}." # Found object
+            f"Object {self.current_object} found at {self.current_object_location}."  # Found object
         )
-        self.update_database(
-            self.current_object, self.current_object_location, "free"
-        )
+        self.update_database(self.current_object, self.current_object_location, "free")
         self.cleanup_after_task()
-        return  
-    
+        return
+
     # Task type 5
     def go_to_location(self, location_1: PoseStamped, location_2: PoseStamped):
         # Go to waypoint
@@ -514,11 +510,6 @@ class RobotStateNode:
         Stub for database update logic. Replace with actual implementation.
         """
         # TODO
-        if status == "free":
-            data = {'object_type': task_object, 'location': object_location, 'status': status}
-        
-        insert_doc=collection.insert_one(data)
-        print(f"inserted Document ID : {insert_doc.inserted_id}")
         return
 
     def leave_object_at_current_location(self):
