@@ -1,0 +1,3 @@
+int32 objectId
+int32 confidence
+geometry_msgs/PoseStamped pose
