@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+    <!-- TASK MANAGER NODES -->
+    <node name="task_assigner" pkg="task_manager" type="task_assigner.py" output="screen">
+        
+    </node>
+
+    <node name="task_node" pkg="task_manager" type="task_node.py" output="screen">
+        
+    </node>
+
+    <node name="task_publishing_node" pkg="task_manager" type="task_publisher.py" output="screen">
+    
+    </node>
+
+    <!-- ROBOT MANAGER NODES -->
+
+    <!-- Individual robot state node -->
+    <node name="robot_state" pkg="robot_manager" type="individual_robot_state.py" output="screen">
+        <!-- Parameters for the robot state node -->
+        <param name="namespace" value="ugv1" /> <!-- Adjust this for each robot (ugv1, ugv2, etc.) -->
+        <param name="battery_threshold" value="10" />
+        <param name="retry_attempts" value="3" />
+        <param name="timeout_duration" value="180" />
+        <param name="tolerance" value="0.5" />
+        <param name="rotation_attempts" value="5" />
+        <param name="default_state" value="1" />
+
+        <!-- Subscribers -->
+        <remap from="ugv1/start_task" to="ugv1/start_task" />
+        <remap from="ugv1/get_state" to="ugv1/get_state" />
+        <remap from="ugv1/patrol_waypoint" to="ugv1/patrol_waypoint" />
+        <remap from="isPatrolling" to="isPatrolling" />
+        <remap from="ugv1/detect_object" to="ugv1/detect_object" />
+        <remap from="ugv1/battery_level" to="ugv1/battery_level" />
+
+        <!-- Publishers -->
+        <remap from="ugv1/expl_pause_topic" to="ugv1/expl_pause_topic" />
+        <remap from="ugv1/cmd_vel" to="ugv1/cmd_vel" />
+        <remap from="ugv1/planner/tasks/append" to="ugv1/planner/tasks/append" />
+        <remap from="ugv1/planner/tasks/remove" to="ugv1/planner/tasks/remove" />
+    </node>
+
+    <!-- MongoDB Connection Node -->
+    <node name="mongodb_connection" pkg="mongodb_ros" type="mongodb_connector.py" output="screen">
+        <param name="mongo_uri" value="mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment" />
+        <param name="db_name" value="world" />
+        <param name="collection_name" value="object" />
+    </node>
+
+    <!-- Simulate Charging Station and Battery Monitor -->
+    <node name="charging_station" pkg="robot_manager" type="charging_station_simulator.py" output="screen">
+        <param name="charging_location" value="0,0,0" /> <!-- Coordinates of charging station -->
+    </node>
+
+    <!-- Simulation of Task Publishing -->
+    <node name="task_simulation" pkg="robot_manager" type="task_publisher.py" output="screen">
+        <param name="task_topic" value="ugv1/start_task" />
+    </node>
+
+    <!-- Publish Path or Waypoint Messages -->
+    <node name="waypoint_publisher" pkg="robot_manager" type="waypoint_publisher.py" output="screen">
+        <param name="waypoint_topic" value="ugv1/planner/tasks/append" />
+    </node>
+
+    <!-- Robot Manager Node -->
+    <node name="robot_manager" pkg="robot_manager" type="robot_manager_node.py" output="screen">
+        <!-- Parameter for number of robots (default is 3) -->
+        <param name="~num_robots" value="3" />
+
+        <!-- Services for get_free_robots and get_task_cost -->
+        <param name="~get_free_robots_service" value="get_free_robots" />
+        <param name="~get_task_cost_service" value="get_task_cost" />
+        
+        <!-- Ensure that the get_state services are available for each robot (e.g., ugv1, ugv2, ...) -->
+        <param name="~robot_1_state_service" value="/ugv1/get_state" />
+        <param name="~robot_2_state_service" value="/ugv2/get_state" />
+        <param name="~robot_3_state_service" value="/ugv3/get_state" />
+
+        <!-- Parameters for cost path calculation -->
+        <param name="~cost_path_service" value="cost_path" />
+    </node>
+
+    <!-- Robot State Manager Node -->
+    <node name="robot_state_manager" pkg="robot_manager" type="robot_state_manager.py" output="screen">
+        
+        <!-- Parameter for number of robots (default is 1) -->
+        <param name="~numRobots" value="3" />
+        
+        <!-- Parameter for sampling interval (in minutes, default is 1 minute) -->
+        <param name="~sampling_interval" value="1" />
+        
+        <!-- Subscribers for update topics for each robot -->
+        <group ns="ugv1">
+            <param name="~robot_namespace" value="ugv1"/>
+            <param name="~update_topic" value="/ugv1/expl_marker_controller/update"/>
+        </group>
+
+        <group ns="ugv2">
+            <param name="~robot_namespace" value="ugv2"/>
+            <param name="~update_topic" value="/ugv2/expl_marker_controller/update"/>
+        </group>
+
+        <group ns="ugv3">
+            <param name="~robot_namespace" value="ugv3"/>
+            <param name="~update_topic" value="/ugv3/expl_marker_controller/update"/>
+        </group>
+        
+        <!-- Publisher for isPatrolling status -->
+        <publisher name="isPatrolling" topic="/isPatrolling" type="std_msgs/Bool" />
+        
+        <!-- Services for each robot's state -->
+        <param name="~ugv1_state_service" value="/ugv1/get_state" />
+        <param name="~ugv2_state_service" value="/ugv2/get_state" />
+        <param name="~ugv3_state_service" value="/ugv3/get_state" />
+        
+        <!-- Parameters for cost path service -->
+        <param name="~cost_path_service" value="cost_path" />
+        
+        <!-- Parameters for robot positions (frame references) -->
+        <param name="~odom_frame" value="odom" />
+        <param name="~base_link_frame" value="base_link" />
+        
+    </node>
+
+</launch>
