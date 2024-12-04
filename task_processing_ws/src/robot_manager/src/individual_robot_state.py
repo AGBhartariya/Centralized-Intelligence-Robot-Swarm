@@ -192,7 +192,7 @@ class RobotStateNode:
 
             if state == 1 or state == 2:
                 rospy.loginfo(
-                    f"Object {self.current_object} found at {self.current_object_location}."
+                    f"Object {self.current_object} found at {self.current_object_location}." # Found object
                 )
                 if self.task_type == 4:  # Find object
                     self.update_database(
