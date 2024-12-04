@@ -6,7 +6,17 @@ from robot_manager.srv import GetState, GetStateResponse
 from robot_manager.msg import Task, DetectedObject
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
-
+from pymongo.server_api import ServerApi
+from pymongo.mongo_client import MongoClient
+uri = "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment"
+client = MongoClient(uri, server_api=ServerApi('1'))
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+db=client['world']
+collection =db['object']
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
