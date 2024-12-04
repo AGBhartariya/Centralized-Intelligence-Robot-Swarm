@@ -6,7 +6,17 @@ from robot_manager.srv import GetState, GetStateResponse
 from robot_manager.msg import Task, DetectedObject
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
-
+from pymongo.server_api import ServerApi
+from pymongo.mongo_client import MongoClient
+uri = "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment"
+client = MongoClient(uri, server_api=ServerApi('1'))
+try:
+    client.admin.command('ping')
+    print("Pinged your deployment. You successfully connected to MongoDB!")
+except Exception as e:
+    print(e)
+db=client['world']
+collection =db['object']
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
@@ -503,13 +513,25 @@ class RobotStateNode:
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
 
-    def update_database(
-        self, task_object: int, task_location: PoseStamped, status: str
-    ):
+    def detect_object(self, task_object):
+        """
+        Stub for object detection logic. Replace with actual implementation.
+        """
+        # TODO
+        rospy.loginfo(f"Detecting object {task_object} (stubbed logic).")
+        self.detect_object_sub(task_object)
+        return False  # Replace with actual detection logic
+
+    def update_database(self, task_object, object_location, status):
         """
         Stub for database update logic. Replace with actual implementation.
         """
         # TODO
+        if status == "free":
+            data = {'object_type': task_object, 'location': object_location, 'status': status}
+        
+        insert_doc=collection.insert_one(data)
+        print(f"inserted Document ID : {insert_doc.inserted_id}")
         return
 
     def leave_object_at_current_location(self):
