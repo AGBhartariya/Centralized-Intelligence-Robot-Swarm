@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 import rospy
-from trajectory_control_msgs.msg import PlanningTask, Path
-from nav_msgs.msg import Path
 import tf
 from geometry_msgs.msg import Point
 from robot_manager.srv import GetFreeRobots, GetTaskCost
@@ -80,11 +78,15 @@ class RobotManager:
             for loc in task_location:
                 task_point.append(loc.pose.position)   
             if task_desc==1:
-                all_points=[robot_pos]+[obj_point]+task_point
-            elif task_desc==2 or task_desc==3 or task_desc==5:
-                all_points=[robot_pos] + task_point
+                all_points=[robot_pos]+[obj_point]+[task_point[1]]
+            elif task_desc==2:
+                all_points=[robot_pos]+[task_point[0]]
+            elif task_desc==3:
+                all_points=[robot_pos]+task_point
             elif task_desc==4:
                 all_points=[robot_pos]+[obj_point]
+            elif task_desc==5:
+                all_points=[robot_pos]+[task_point[1]]
 
             request.task.header.frame_id = 'odom' 
             request.task.waypoints = all_points

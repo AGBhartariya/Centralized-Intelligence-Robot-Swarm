@@ -186,12 +186,8 @@ protected:
     ros::ServiceServer cost_path_ser;
     void appendCallback(const trajectory_control_msgs::PlanningTask& task_msg);
     void removeCallback(const trajectory_control_msgs::PlanningTask& task_msg);
-    std::vector<nav_msgs::Path> returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg);
-<<<<<<< HEAD
-    
-=======
+    void returnCostPath(const trajectory_control_msgs::PlanningTask& task_msg, std::vector<nav_msgs::Path> &path_list);
     bool getCostPath(trajectory_control_msgs::GetCostPath::Request  &req, trajectory_control_msgs::GetCostPath::Response &res);
->>>>>>> 5fd4f51d2538a2f43186cea80b94011a5c4d22c0
     // this callback is called automatically every kTaskCallbackPeriod seconds 
     void taskTimerCallback(const ros::TimerEvent& timer_msg);
 

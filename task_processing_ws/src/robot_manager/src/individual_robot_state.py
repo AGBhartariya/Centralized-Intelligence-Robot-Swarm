@@ -1,22 +1,24 @@
 import math
 import tf
 import rospy
-from std_msgs.msg import Bool, Int32, String
+from std_msgs.msg import Bool, Int32
 from robot_manager.srv import GetState, GetStateResponse
-from robot_manager.msg import Task, DetectedObject
+from robot_manager.msg import Task, DetectObject
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
 from pymongo.server_api import ServerApi
 from pymongo.mongo_client import MongoClient
+
 uri = "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment"
-client = MongoClient(uri, server_api=ServerApi('1'))
+client = MongoClient(uri, server_api=ServerApi("1"))
 try:
-    client.admin.command('ping')
+    client.admin.command("ping")
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
-db=client['world']
-collection =db['object']
+db = client["world"]
+collection = db["object"]
+
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
@@ -54,7 +56,7 @@ class RobotStateNode:
         self.isPatrolsub = rospy.Subscriber("isPatrolling", Bool, self.isPatroCallback)
         self.detect_object_sub = rospy.Subscriber(
             f"{self.namespace}/detect_object",
-            DetectedObject,
+            DetectObject,
             self.detect_object_callback,
         )
 
@@ -97,11 +99,11 @@ class RobotStateNode:
                     "Battery level critical during task execution. Will return to charging station after task completion."
                 )
 
-    def detect_object_callback(self, msg: DetectedObject):
+    def detect_object_callback(self, msg: DetectObject):
         """
         Handle detected objects published on the detect_object topic.
         """
-        object_id = msg.objectId.data
+        object_id = msg.objectId
         location = msg.pose
 
         # Update or add the detected object in the database
@@ -145,7 +147,7 @@ class RobotStateNode:
         self.cmd_vel_pub.publish(zero_vel)
 
     def isPatroCallback(self, msg):
-        if msg.data:
+        if msg:
             self.default_state = 0
 
     def execute_task(self, task: Task):
@@ -154,8 +156,8 @@ class RobotStateNode:
             return
 
         task_type, task_object, location_1, location_2 = (
-            task.description[0].data,
-            task.description[1].data,
+            task.description[0],
+            task.description[1],
             task.locations[0],
             task.locations[1],
         )
@@ -169,190 +171,218 @@ class RobotStateNode:
             self.current_object, self.current_object_location, "occupied"
         )
 
-        if self.task_type in [1, 4]:  # Bring Object or Find Object
-            rospy.loginfo(
-                f"Executing task type {self.task_type} for object {self.current_object}."
-            )
+        if self.task_type == 1:
+            self.bring_object(location_1, location_2)
+        elif self.task_type == 2:
+            self.interact_object(location_1, location_2)
+        elif self.task_type == 3:
+            self.move_object(location_1, location_2)
+        elif self.task_type == 4:
+            self.find_object(location_1, location_2)
+        elif self.task_type == 5:
+            self.go_to_location(location_1, location_2)
 
-            # Go to location 1 while checking for free objects
-            state = self.navigate_and_check_for_objects(
-                self.current_object, self.current_object_location
-            )
-            # Failed to reach the loction or find object, aborting task
-            if state == 0:
-                self.update_database(
-                    self.current_object, self.current_object_location, "free"
-                )
-                self.abort_task(
-                    f"Failed to reach location {self.current_object_location} or find object {self.current_object}."
-                )
-                self.cleanup_after_task()
-                return
-
-            # Reached the deignated location 1 rotating to find the object
-            if state == 1 and not self.perform_rotation_check(task_object):
-                self.update_database(
-                    self.current_object, self.current_object_location, "remove"
-                )
-                self.abort_task(
-                    f"Object {self.current_object} not found at {self.current_object_location}."
-                )
-                self.cleanup_after_task()
-                return
-
-            if state == 1 or state == 2:
-                rospy.loginfo(
-                    f"Object {self.current_object} found at {self.current_object_location}." # Found object
-                )
-                if self.task_type == 4:  # Find object
-                    self.update_database(
-                        self.current_object, self.current_object_location, "free"
-                    )
-                    self.cleanup_after_task()
-                    return
-
-            # If task type is 1, pick up the object and proceed to location 2
+    # Task type 1
+    def bring_object(self, location_1: PoseStamped, location_2: PoseStamped):
+        rospy.loginfo(
+            f"Executing task type {self.task_type} for object {self.current_object}."
+        )
+        # Go to location 1 while checking for free objects
+        state = self.navigate_and_check_for_objects(
+            self.current_object, self.current_object_location
+        )
+        # Failed to reach the loction or find object, aborting task
+        if state == 0:
             self.update_database(
-                self.current_object, self.current_object_location, "remove"
+                self.current_object, self.current_object_location, "free"
             )
-            if self.task_type == 1 and not self.navigate_to_point(location_2):
-                if self.navigate_to_point(self.current_object_location):
-                    self.update_database(
-                        task_object, self.current_object_location, "free"
-                    )
-                    self.abort_task(
-                        f"Failed to reach location {location_2} for object {self.current_object}. Kept object back at {self.current_object_location}."
-                    )
-                    self.cleanup_after_task()
-                    return
-
-                self.leave_object_at_current_location()
-                self.update_database(
-                    self.current_object, self.current_object_location, "free"
-                )
-                self.abort_task(
-                    f"Task aborted: Unable to move {self.current_object} to {location_2}. Keep it at {self.current_object_location}."
-                )
-                self.cleanup_after_task()
-                return
-            # Task of type 1 completed successfully
-            rospy.loginfo(f"Kept object {self.current_object} at {location_2}.")
-            self.update_database(self.current_object, location_2, "free")
+            self.abort_task(
+                f"Failed to reach location {self.current_object_location} or find object {self.current_object}."
+            )
             self.cleanup_after_task()
             return
 
-        else:  # For task types 2, 3, and 5
-            rospy.loginfo(f"Executing task type {self.task_type}.")
-            if not self.handle_other_tasks(
-                self.task_type, location_1, location_2, task_object
-            ):
-                return
-
-    def handle_other_tasks(
-        self,
-        task_type: int,
-        location_1: PoseStamped,
-        location_2: PoseStamped,
-        task_object: int,
-    ):
-        """
-        Handle task types other than 1 and 4.
-        """
-        if task_type == 2:  # Inspect/Interact
-            rospy.loginfo(f"Going to {location_1}")
+        # Reached the deignated location 1 rotating to find the object
+        if state == 1 and not self.perform_rotation_check(self.current_object):
             self.update_database(
-                self.current_object, self.current_object_location, "occupied"
+                self.current_object, self.current_object_location, "remove"
             )
-            if not self.navigate_to_point(location_1):
-                self.abort_task(
-                    f"Failed to reach location {location_1} to interact with {task_object}."
-                )
+            self.abort_task(
+                f"Object {self.current_object} not found at {self.current_object_location}."
+            )
+            self.cleanup_after_task()
+            return
+
+        rospy.loginfo(
+            f"Object {self.current_object} found at {self.current_object_location}."  # Found object
+        )
+
+        # If task type is 1, pick up the object and proceed to location 2
+        self.update_database(
+            self.current_object, self.current_object_location, "remove"
+        )
+        if not self.navigate_to_point(location_2):
+            if self.navigate_to_point(self.current_object_location):
                 self.update_database(
                     self.current_object, self.current_object_location, "free"
                 )
+                self.abort_task(
+                    f"Failed to reach location {location_2} for object {self.current_object}. Kept object back at {self.current_object_location}."
+                )
                 self.cleanup_after_task()
                 return
 
-            if not self.perform_rotation_check(task_object):
-                self.update_database(
-                    self.current_object, self.current_object_location, "remove"
-                )
-                self.abort_task(f"Object {task_object} not found at {location_1}.")
-                self.cleanup_after_task()
-                return
-            rospy.loginfo(f"Interacted with the object {self.current_object}")
+            self.leave_object_at_current_location()
+            self.update_database(
+                self.current_object, self.current_object_location, "free"
+            )
+            self.abort_task(
+                f"Task aborted: Unable to move {self.current_object} to {location_2}. Keep it at {self.current_object_location}."
+            )
+            self.cleanup_after_task()
+            return
+        # Task of type 1 completed successfully
+        rospy.loginfo(f"Kept object {self.current_object} at {location_2}.")
+        self.update_database(self.current_object, location_2, "free")
+        self.cleanup_after_task()
+        return
+
+    # Task type 2
+    def interact_object(self, location_1: PoseStamped, location_2: PoseStamped):
+        rospy.loginfo(f"Going to {location_1}")
+        self.update_database(
+            self.current_object, self.current_object_location, "occupied"
+        )
+        if not self.navigate_to_point(location_1):
+            self.abort_task(
+                f"Failed to reach location {location_1} to interact with {self.current_object}."
+            )
             self.update_database(
                 self.current_object, self.current_object_location, "free"
             )
             self.cleanup_after_task()
             return
 
-        elif task_type == 3:  # Move Object from location 1 to location 2
-            rospy.loginfo(f"Going to {location_1} for getting {self.current_object}")
-            self.update_database(
-                self.current_object, self.current_object_location, "occupied"
-            )
-            if not self.navigate_to_point(location_1):
-                self.abort_task(
-                    f"Failed to reach location {location_1} to pick up {task_object}."
-                )
-                self.update_database(
-                    self.current_object, self.current_object_location, "free"
-                )
-                self.cleanup_after_task()
-                return
-
-            if not self.perform_rotation_check(task_object):  # Checking for object
-                self.update_database(
-                    self.current_object, self.current_object_location, "remove"
-                )
-                self.abort_task(f"Object {task_object} not found at {location_1}.")
-                self.cleanup_after_task()
-                return
-
+        if not self.perform_rotation_check(self.current_object):
             self.update_database(
                 self.current_object, self.current_object_location, "remove"
-            )  # Picking up the object
-            rospy.loginfo(
-                f"Picked object {self.current_object} from {location_1}. Going to {location_2}"
             )
-            if not self.navigate_to_point(location_2):  # Going to location 2
-                if self.navigate_to_point(
-                    location_1
-                ):  # Failed to go to location 2 going back to location 1
-                    self.update_database(
-                        self.current_object, self.current_object_location, "free"
-                    )
-                    self.abort_task(
-                        f"Failed to return to go to {location_2}. Returned object at {self.current_object_location}"
-                    )
-                    self.cleanup_after_task
-                    return
+            self.abort_task(f"Object {self.current_object} not found at {location_1}.")
+            self.cleanup_after_task()
+            return
+        rospy.loginfo(f"Interacted with the object {self.current_object}")
+        self.update_database(self.current_object, self.current_object_location, "free")
+        self.cleanup_after_task()
+        return
 
-                self.leave_object_at_current_location()  # Failed to go to location 2 keeping object back at current place
+    # Task type 3
+    def move_object(self, location_1: PoseStamped, location_2: PoseStamped):
+        rospy.loginfo(f"Going to {location_1} for getting {self.current_object}")
+        self.update_database(
+            self.current_object, self.current_object_location, "occupied"
+        )
+        if not self.navigate_to_point(location_1):
+            self.abort_task(
+                f"Failed to reach location {location_1} to pick up {self.current_object}."
+            )
+            self.update_database(
+                self.current_object, self.current_object_location, "free"
+            )
+            self.cleanup_after_task()
+            return
+
+        if not self.perform_rotation_check(self.current_object):  # Checking for object
+            self.update_database(
+                self.current_object, self.current_object_location, "remove"
+            )
+            self.abort_task(f"Object {self.current_object} not found at {location_1}.")
+            self.cleanup_after_task()
+            return
+
+        self.update_database(
+            self.current_object, self.current_object_location, "remove"
+        )  # Picking up the object
+        rospy.loginfo(
+            f"Picked object {self.current_object} from {location_1}. Going to {location_2}"
+        )
+        if not self.navigate_to_point(location_2):  # Going to location 2
+            if self.navigate_to_point(
+                location_1
+            ):  # Failed to go to location 2 going back to location 1
                 self.update_database(
                     self.current_object, self.current_object_location, "free"
                 )
                 self.abort_task(
-                    f"Task aborted: Unable to move {task_object} to {location_2}. Keep in {self.current_object_location}"
+                    f"Failed to return to go to {location_2}. Returned object at {self.current_object_location}"
                 )
-                self.cleanup_after_task()
-            # Reached location 2
+                self.cleanup_after_task
+                return
+
+            self.leave_object_at_current_location()  # Failed to go to location 2 keeping object back at current place
             self.update_database(
-                self.current_object, location_2, "free"
-            )  # Keeping the object at location 2
-            rospy.loginfo(f"Kept object at {location_2}")
+                self.current_object, self.current_object_location, "free"
+            )
+            self.abort_task(
+                f"Task aborted: Unable to move {self.current_object} to {location_2}. Keep in {self.current_object_location}"
+            )
+            self.cleanup_after_task()
+        # Reached location 2
+        self.update_database(
+            self.current_object, location_2, "free"
+        )  # Keeping the object at location 2
+        rospy.loginfo(f"Kept object at {location_2}")
+        self.cleanup_after_task()
+        return
+
+    # Task type 4
+    def find_object(self, location_1: PoseStamped, location_2: PoseStamped):
+        rospy.loginfo(
+            f"Executing task type {self.task_type} for object {self.current_object}."
+        )
+
+        # Go to location 1 while checking for free objects
+        state = self.navigate_and_check_for_objects(
+            self.current_object, self.current_object_location
+        )
+        # Failed to reach the loction or find object, aborting task
+        if state == 0:
+            self.update_database(
+                self.current_object, self.current_object_location, "free"
+            )
+            self.abort_task(
+                f"Failed to reach location {self.current_object_location} or find object {self.current_object}."
+            )
             self.cleanup_after_task()
             return
 
-        elif task_type == 5:  # Go to Location
-            if not self.navigate_to_point(location_2):
-                self.abort_task(f"Failed to reach location {location_2}.")
-                self.cleanup_after_task()
-                return
-            rospy.loginfo(f"Reached {location_2}")
+        # Reached the deignated location 1 rotating to find the object
+        if state == 1 and not self.perform_rotation_check(self.current_object):
+            self.update_database(
+                self.current_object, self.current_object_location, "remove"
+            )
+            self.abort_task(
+                f"Object {self.current_object} not found at {self.current_object_location}."
+            )
             self.cleanup_after_task()
             return
+
+        rospy.loginfo(
+            f"Object {self.current_object} found at {self.current_object_location}."  # Found object
+        )
+        self.update_database(self.current_object, self.current_object_location, "free")
+        self.cleanup_after_task()
+        return
+
+    # Task type 5
+    def go_to_location(self, location_1: PoseStamped, location_2: PoseStamped):
+        # Go to waypoint
+        if not self.navigate_to_point(location_2):
+            self.abort_task(f"Failed to reach location {location_2}.")
+            self.cleanup_after_task()
+            return
+        rospy.loginfo(f"Reached {location_2}")
+        self.cleanup_after_task()
+        return
 
     def navigate_to_point(self, location: PoseStamped):
         """
@@ -442,6 +472,7 @@ class RobotStateNode:
         self.current_object_location = None
         self.current_object = None
         self.acquired_object = False
+        self.task_type = None
         self.state = self.default_state
 
     def publish_waypoint(self, location: PoseStamped):
@@ -485,24 +516,18 @@ class RobotStateNode:
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
 
-    def detect_object(self, task_object):
-        """
-        Stub for object detection logic. Replace with actual implementation.
-        """
-        # TODO
-        rospy.loginfo(f"Detecting object {task_object} (stubbed logic).")
-        self.detect_object_sub(task_object)
-        return False  # Replace with actual detection logic
-
     def update_database(self, task_object, object_location, status):
         """
-        Stub for database update logic. Replace with actual implementation.
+        Database update logic.
         """
-        # TODO
         if status == "free":
-            data = {'object_type': task_object, 'location': object_location, 'status': status}
-        
-        insert_doc=collection.insert_one(data)
+            data = {
+                "object_type": task_object,
+                "location": object_location,
+                "status": status,
+            }
+
+        insert_doc = collection.insert_one(data)
         print(f"inserted Document ID : {insert_doc.inserted_id}")
         return
 

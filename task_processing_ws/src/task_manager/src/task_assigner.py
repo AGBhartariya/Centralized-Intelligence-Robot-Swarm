@@ -4,6 +4,7 @@ import rospy
 from robot_manager.msg import Task
 from robot_manager.srv import GetFreeRobots, GetTaskCost
 from task_data_services.srv import QueryObjectLocations
+from geometry_msgs.msg import PoseStamped
 import heapq
 import numpy as np
 from scipy.optimize import linear_sum_assignment
@@ -46,13 +47,13 @@ def increment_task_priorities():
     updated_tasks = []
     while priority_queue:
         priority, task = heapq.heappop(priority_queue)
-        serialized_description = serialize_task_description(task.description)
+        serialized_description = serialize_task_description(task)
         timestamp = task_timestamps[serialized_description]
 
         # Check if the task has exceeded the `k`-minute threshold
         if current_time - timestamp >= k_seconds:
             rospy.loginfo(
-                f"Incrementing priority for task '{task.description}' by {n}."
+                f"Incrementing priority for task '{serialized_description}' by {n}."
             )
             priority -= n  # Lower priority value means higher priority
             task_timestamps[serialized_description] = current_time  # Update timestamp
@@ -169,10 +170,9 @@ def assign_tasks():
                 task = tasks[task_idx]
                 robot_id = free_robot_ids[robot_idx]
                 assigned_location = task_object_locations[task_idx][robot_idx]
-                # TODO
-                rospy.loginfo(
-                    f"Assigned task '{task.description}' to robot {robot_id} at location {assigned_location}."
-                )
+                task = generateTaskMsg(task, assigned_location)
+                task_pub = rospy.Publisher(f"/ugv{robot_id}/start_task", Task, queue_size=1)
+                task_pub.publish(task)
             else:
                 rospy.loginfo("No valid assignment found for some tasks.")
 
@@ -181,6 +181,19 @@ def assign_tasks():
             if i not in task_indices:
                 heapq.heappush(priority_queue, (tasks[i].priority, tasks[i]))
 
+def generateTaskMsg(task: Task, assigned_location: PoseStamped) -> Task:
+    # Format the task as the per the individual robot state requirement
+    if task.description[0] == 1:
+        task.locations[0] = assigned_location
+    elif task.description[0] == 2:
+        pass
+    elif task.description[0] == 3:
+        pass
+    elif task.description[0] == 4:
+        task.location[0] = assigned_location
+    elif task.description[0] == 5:
+        pass
+    return task
 
 if __name__ == "__main__":
     rospy.init_node("task_assigner")

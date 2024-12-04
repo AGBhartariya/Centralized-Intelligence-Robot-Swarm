@@ -21,6 +21,7 @@ add_service_files(
 add_message_files(
   FILES
   Task.msg
+  DetectObject.msg
 )
 
 generate_messages(
