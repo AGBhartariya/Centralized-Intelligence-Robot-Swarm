@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
 import rospy
-from trajectory_control_msgs.msg import PlanningTask, Path
-from nav_msgs.msg import Path
 from std_msgs.msg import Bool
 from robot_manager.srv import GetState
 from geometry_msgs.msg import Point

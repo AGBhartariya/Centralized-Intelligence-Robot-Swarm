@@ -6,10 +6,16 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   sensor_msgs
   geometry_msgs
+  robot_manager
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs sensor_msgs geometry_msgs
+  CATKIN_DEPENDS rospy std_msgs sensor_msgs geometry_msgs robot_manager
+)
+
+catkin_install_python(PROGRAMS
+  src/yolo_pose_detect.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 include_directories(
