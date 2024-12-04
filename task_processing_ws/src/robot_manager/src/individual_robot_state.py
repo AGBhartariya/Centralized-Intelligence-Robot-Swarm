@@ -499,6 +499,11 @@ class RobotStateNode:
         Stub for database update logic. Replace with actual implementation.
         """
         # TODO
+        if status == "free":
+            data = {'object_type': task_object, 'location': object_location, 'status': status}
+        
+        insert_doc=collection.insert_one(data)
+        print(f"inserted Document ID : {insert_doc.inserted_id}")
         return
 
     def leave_object_at_current_location(self):
