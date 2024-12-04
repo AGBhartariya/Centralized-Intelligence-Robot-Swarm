@@ -132,6 +132,9 @@ class RobotStateNode:
             self.current_object_location.pose.orientation.x = rot[0]
             self.current_object_location.pose.orientation.y = rot[1]
             self.current_object_location.pose.orientation.z = rot[2]
+            self.update_database(
+                self.current_object, self.current_object_pose, "occupied"
+            )
             
 
     def return_to_charging_station(self):
@@ -273,9 +276,7 @@ class RobotStateNode:
     # Task type 2
     def interact_object(self, location_1: PoseStamped, location_2: PoseStamped):
         rospy.loginfo(f"Going to {location_1}")
-        self.update_database(
-            self.current_object, self.current_object_pose, "occupied"
-        )
+
         if not self.navigate_to_point(location_1):
             self.abort_task(
                 f"Failed to reach location {location_1} to interact with {self.current_object}."
@@ -301,9 +302,7 @@ class RobotStateNode:
     # Task type 3
     def move_object(self, location_1: PoseStamped, location_2: PoseStamped):
         rospy.loginfo(f"Going to {location_1} for getting {self.current_object}")
-        self.update_database(
-            self.current_object, self.current_object_pose, "occupied"
-        )
+
         if not self.navigate_to_point(location_1):
             self.abort_task(
                 f"Failed to reach location {location_1} to pick up {self.current_object}."
