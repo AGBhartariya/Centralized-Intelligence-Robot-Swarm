@@ -470,6 +470,7 @@ class RobotStateNode:
         self.current_object_location = None
         self.current_object = None
         self.acquired_object = False
+        self.task_type = None
         self.state = self.default_state
 
     def publish_waypoint(self, location: PoseStamped):
