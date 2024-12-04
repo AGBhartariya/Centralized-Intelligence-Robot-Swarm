@@ -435,7 +435,6 @@ class RobotStateNode:
         self.state = self.default_state
 
     def publish_waypoint(self, location: PoseStamped):
-        # TODO
         waypoint_msg = Point(
             x=location.pose.position.x,
             y=location.pose.position.y,
