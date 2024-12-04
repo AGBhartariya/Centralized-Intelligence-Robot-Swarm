@@ -39,6 +39,7 @@ class RobotStateNode:
         self.current_object_location = None
         self.acquired_object = False
         self.current_object_pose = None
+        self.finding = False
 
         self.battery_threshold = 10
         self.battery_level = 100
@@ -46,7 +47,6 @@ class RobotStateNode:
         self.timeout_duration = 180  # Timeout duration in seconds
         self.tolerance = 0.5  # Distance tolerance to consider "reached"
         self.rotation_attempts = 5  # Number of rotations at the location
-        self.finding = False
 
         self.task_sub = rospy.Subscriber(
             f"{self.namespace}/start_task", Task, self.execute_task
@@ -480,7 +480,7 @@ class RobotStateNode:
             rospy.loginfo(f"Rotation attempt {attempt + 1}/{self.rotation_attempts}.")
             self.start_rotation()
 
-            self.finding = False
+            self.finding = True
             if self.acquired_object:
                 return True
 
