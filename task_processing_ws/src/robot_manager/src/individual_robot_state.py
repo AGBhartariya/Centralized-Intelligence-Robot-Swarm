@@ -103,7 +103,7 @@ class RobotStateNode:
         """
         Handle detected objects published on the detect_object topic.
         """
-        object_id = msg.objectId.data
+        object_id = msg.objectId
         location = msg.pose
 
         # Update or add the detected object in the database
@@ -147,7 +147,7 @@ class RobotStateNode:
         self.cmd_vel_pub.publish(zero_vel)
 
     def isPatroCallback(self, msg):
-        if msg.data:
+        if msg:
             self.default_state = 0
 
     def execute_task(self, task: Task):
@@ -156,8 +156,8 @@ class RobotStateNode:
             return
 
         task_type, task_object, location_1, location_2 = (
-            task.description[0].data,
-            task.description[1].data,
+            task.description[0],
+            task.description[1],
             task.locations[0],
             task.locations[1],
         )

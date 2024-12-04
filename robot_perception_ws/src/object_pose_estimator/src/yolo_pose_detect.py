@@ -3,7 +3,8 @@
 import rospy
 import numpy as np
 import open3d as o3d
-from sensor_msgs.msg import Image, CameraInfo, PointCloud2 # TODO: Create the detected object message
+from sensor_msgs.msg import Image, CameraInfo, PointCloud2
+from robot_manager.msg import DetectObject
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int32
 from cv_bridge import CvBridge

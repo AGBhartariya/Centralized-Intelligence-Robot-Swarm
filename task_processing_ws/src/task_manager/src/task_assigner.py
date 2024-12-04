@@ -111,12 +111,12 @@ def assign_tasks():
             if not free_robot_ids:
                 rospy.loginfo("No free robots available, re-queueing tasks...")
                 for task in tasks:
-                    heapq.heappush(priority_queue, (task.priority.data, task))
+                    heapq.heappush(priority_queue, (task.priority, task))
                 continue
         except rospy.ServiceException as e:
             rospy.logerr(f"Failed to get free robots: {e}")
             for task in tasks:
-                heapq.heappush(priority_queue, (task.priority.data, task))
+                heapq.heappush(priority_queue, (task.priority, task))
             continue
 
         # Create a cost matrix and store object locations
@@ -135,7 +135,7 @@ def assign_tasks():
                 object_locations_client = rospy.ServiceProxy(
                     "/task_data_service/QueryTaskData", QueryObjectLocations
                 )
-                object_locations = object_locations_client(data[1].data).locations
+                object_locations = object_locations_client(data[1]).locations
 
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
@@ -158,7 +158,7 @@ def assign_tasks():
             rospy.logerr(f"Service call failed during cost calculation: {e}")
             # Re-queue tasks in case of a failure
             for task in tasks:
-                heapq.heappush(priority_queue, (task.priority.data, task))
+                heapq.heappush(priority_queue, (task.priority, task))
             continue
 
         # Solve the assignment problem
@@ -183,15 +183,15 @@ def assign_tasks():
 
 def generateTaskMsg(task: Task, assigned_location: PoseStamped) -> Task:
     # Format the task as the per the individual robot state requirement
-    if task.description[0].data == 1:
+    if task.description[0] == 1:
         task.locations[0] = assigned_location
-    elif task.description[0].data == 2:
+    elif task.description[0] == 2:
         pass
-    elif task.description[0].data == 3:
+    elif task.description[0] == 3:
         pass
-    elif task.description[0].data == 4:
+    elif task.description[0] == 4:
         task.location[0] = assigned_location
-    elif task.description[0].data == 5:
+    elif task.description[0] == 5:
         pass
     return task
 

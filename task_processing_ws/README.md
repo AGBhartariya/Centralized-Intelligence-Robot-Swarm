@@ -35,7 +35,7 @@ Where:
 4. **Find Object:**  
    **x1 = 4**  
    **Description:** Locate an object of type **x2**.  
-   **Special Note:** This is a specific case of task type 2, but without a fixed location.
+   **Special Note:** This is a specific case of task type 2, but without a fixed location to bring the object (just locating).
 
 5. **Go to Location:**
    **x1 = 5**
