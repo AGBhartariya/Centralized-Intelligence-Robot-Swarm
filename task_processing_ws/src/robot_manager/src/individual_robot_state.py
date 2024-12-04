@@ -1,22 +1,24 @@
 import math
 import tf
 import rospy
-from std_msgs.msg import Bool, Int32, String
+from std_msgs.msg import Bool, Int32
 from robot_manager.srv import GetState, GetStateResponse
-from robot_manager.msg import Task, DetectedObject
+from robot_manager.msg import Task, DetectObject
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
 from pymongo.server_api import ServerApi
 from pymongo.mongo_client import MongoClient
+
 uri = "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment"
-client = MongoClient(uri, server_api=ServerApi('1'))
+client = MongoClient(uri, server_api=ServerApi("1"))
 try:
-    client.admin.command('ping')
+    client.admin.command("ping")
     print("Pinged your deployment. You successfully connected to MongoDB!")
 except Exception as e:
     print(e)
-db=client['world']
-collection =db['object']
+db = client["world"]
+collection = db["object"]
+
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
@@ -54,7 +56,7 @@ class RobotStateNode:
         self.isPatrolsub = rospy.Subscriber("isPatrolling", Bool, self.isPatroCallback)
         self.detect_object_sub = rospy.Subscriber(
             f"{self.namespace}/detect_object",
-            DetectedObject,
+            DetectObject,
             self.detect_object_callback,
         )
 
@@ -97,7 +99,7 @@ class RobotStateNode:
                     "Battery level critical during task execution. Will return to charging station after task completion."
                 )
 
-    def detect_object_callback(self, msg: DetectedObject):
+    def detect_object_callback(self, msg: DetectObject):
         """
         Handle detected objects published on the detect_object topic.
         """
@@ -516,13 +518,16 @@ class RobotStateNode:
 
     def update_database(self, task_object, object_location, status):
         """
-        Stub for database update logic. Replace with actual implementation.
+        Database update logic.
         """
-        # TODO
         if status == "free":
-            data = {'object_type': task_object, 'location': object_location, 'status': status}
-        
-        insert_doc=collection.insert_one(data)
+            data = {
+                "object_type": task_object,
+                "location": object_location,
+                "status": status,
+            }
+
+        insert_doc = collection.insert_one(data)
         print(f"inserted Document ID : {insert_doc.inserted_id}")
         return
 

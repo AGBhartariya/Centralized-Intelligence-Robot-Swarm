@@ -22,7 +22,7 @@ Where:
 
 1. **Bring Object:**  
    **x1 = 1**  
-   **Description:** Bring an object of type **x2** to a specific location **x4**.
+   **Description:** Bring an object of type **x2** to a specific location **x4** (specific location of the object is'nt given).
 
 2. **Inspect/Interact:**  
    **x1 = 2**  
