@@ -10,7 +10,13 @@ find_package(catkin REQUIRED COMPONENTS
 
 add_service_files(
   FILES
+  GetObjectPose.srv
   UpdatePose.srv
+)
+
+add_message_files(
+  FILES
+  DetectObject.msg
 )
 
 generate_messages(
@@ -18,6 +24,7 @@ generate_messages(
   std_msgs
   geometry_msgs
 )
+
 
 catkin_package(
   CATKIN_DEPENDS rospy std_msgs geometry_msgs message_runtime

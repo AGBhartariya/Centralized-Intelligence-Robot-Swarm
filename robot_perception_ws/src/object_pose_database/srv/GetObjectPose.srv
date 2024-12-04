@@ -1,0 +1,6 @@
+#Request
+int32 objectId
+geometry_msgs/PoseStamped location
+---
+#Response
+geometry_msgs/PoseStamped pose

@@ -2,8 +2,10 @@ import math
 import tf
 import rospy
 from std_msgs.msg import Bool, Int32
-from robot_manager.srv import GetState, GetStateResponse, GetObjectPose
-from robot_manager.msg import Task, DetectObject, ObjectPoseGet
+from robot_manager.srv import GetState, GetStateResponse
+from object_pose_database.srv import GetObjectPoseRequest, GetObjectPose
+from object_pose_database.msg import DetectObject
+from robot_manager.msg import Task
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
 from pymongo.server_api import ServerApi
@@ -179,10 +181,12 @@ class RobotStateNode:
         # Mark the task's initial object location as occupied
         self.current_object = task_object
         self.current_object_location = location_1
-        temp = ObjectPoseGet()
+
+        temp = GetObjectPoseRequest()
         temp.objectId = self.current_object
         temp.location = self.current_object_location
-        self.current_object_pose = self.getObjectPose(temp)
+
+        self.current_object_pose = self.getObjectPose(temp).pose
         self.task_type = task_type
         self.state = 3
         self.update_database(
