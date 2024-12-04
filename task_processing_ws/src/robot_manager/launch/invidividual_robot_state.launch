@@ -1,0 +1,31 @@
+<launch>
+  <!-- Launch the individual_robot_state node -->
+  <node 
+    pkg="robot_manager" 
+    type="individual_robot_state.py" 
+    name="individual_robot_state" 
+    output="screen">
+
+    <!-- Pass the robot_namespace parameter -->
+    <param name="robot_namespace" value="$(arg robot_namespace)"/>
+  </node>
+
+  <!-- Declare robot_namespace as an argument -->
+  <arg name="robot_namespace" default="default_namespace"/>
+
+  <!-- Launch the robot_state_manager node -->
+  <node 
+    pkg="robot_manager" 
+    type="robot_state_manager.py" 
+    name="robot_state_manager" 
+    output="screen">
+
+    <!-- Pass the num_robots and sampling_interval parameters -->
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="sampling_interval" value="$(arg sampling_interval)"/>
+  </node>
+
+  <!-- Declare num_robots and sampling_interval as arguments -->
+  <arg name="num_robots" default="1"/>
+  <arg name="sampling_interval" default="0.1"/>
+</launch>

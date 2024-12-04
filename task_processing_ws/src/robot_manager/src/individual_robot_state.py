@@ -2,8 +2,8 @@ import math
 import tf
 import rospy
 from std_msgs.msg import Bool, Int32
-from robot_manager.srv import GetState, GetStateResponse
-from robot_manager.msg import Task, DetectObject
+from robot_manager.srv import GetState, GetStateResponse, GetObjectPose
+from robot_manager.msg import Task, DetectObject, ObjectPoseGet
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
 from pymongo.server_api import ServerApi
@@ -36,6 +36,7 @@ class RobotStateNode:
         self.task_type = None
         self.current_object_location = None
         self.acquired_object = False
+        self.current_object_pose = None
 
         self.battery_threshold = 10
         self.battery_level = 100
@@ -43,6 +44,7 @@ class RobotStateNode:
         self.timeout_duration = 180  # Timeout duration in seconds
         self.tolerance = 0.5  # Distance tolerance to consider "reached"
         self.rotation_attempts = 5  # Number of rotations at the location
+        self.finding = False
 
         self.task_sub = rospy.Subscriber(
             f"{self.namespace}/start_task", Task, self.execute_task
@@ -77,6 +79,8 @@ class RobotStateNode:
             f"{self.namespace}/planner/tasks/remove", PlanningTask, queue_size=10
         )
 
+        self.getObjectPose = rospy.ServiceProxy('/getObjectPose', GetObjectPose)
+
         rospy.loginfo(f"RobotStateNode for namespace '{self.namespace}' initialized.")
 
     def battery_callback(self, msg: Int32):
@@ -104,19 +108,29 @@ class RobotStateNode:
         Handle detected objects published on the detect_object topic.
         """
         object_id = msg.objectId
-        location = msg.pose
+        pose = msg.pose
 
         # Update or add the detected object in the database
         if (
             self.current_object == object_id
-            and self.task_type in [1, 4]
+            and (self.task_type in [1, 4] or self.finding)
             and not self.acquired_object
         ):
             self.acquired_object = True
             self.update_database(
-                self.current_object, self.current_object_location, "free"
+                self.current_object, self.current_object_pose, "free"
             )
-            self.current_object_location = location
+            self.current_object_pose = pose
+            (trans, rot) = self.tf_listener.lookupTransform(
+                        "map", "base_link", rospy.Time(0)
+                        )
+            self.current_object_location.pose.position.x = trans[0]
+            self.current_object_location.pose.position.y = trans[1]
+            self.current_object_location.pose.position.z = trans[2]
+            self.current_object_location.pose.orientation.x = rot[0]
+            self.current_object_location.pose.orientation.y = rot[1]
+            self.current_object_location.pose.orientation.z = rot[2]
+            
 
     def return_to_charging_station(self):
         """
@@ -165,10 +179,14 @@ class RobotStateNode:
         # Mark the task's initial object location as occupied
         self.current_object = task_object
         self.current_object_location = location_1
+        temp = ObjectPoseGet()
+        temp.objectId = self.current_object
+        temp.location = self.current_object_location
+        self.current_object_pose = self.getObjectPose(temp)
         self.task_type = task_type
         self.state = 3
         self.update_database(
-            self.current_object, self.current_object_location, "occupied"
+            self.current_object, self.current_object_pose, "occupied"
         )
 
         if self.task_type == 1:
@@ -194,7 +212,7 @@ class RobotStateNode:
         # Failed to reach the loction or find object, aborting task
         if state == 0:
             self.update_database(
-                self.current_object, self.current_object_location, "free"
+                self.current_object, self.current_object_pose, "free"
             )
             self.abort_task(
                 f"Failed to reach location {self.current_object_location} or find object {self.current_object}."
@@ -205,7 +223,7 @@ class RobotStateNode:
         # Reached the deignated location 1 rotating to find the object
         if state == 1 and not self.perform_rotation_check(self.current_object):
             self.update_database(
-                self.current_object, self.current_object_location, "remove"
+                self.current_object, self.current_object_pose, "remove"
             )
             self.abort_task(
                 f"Object {self.current_object} not found at {self.current_object_location}."
@@ -219,12 +237,12 @@ class RobotStateNode:
 
         # If task type is 1, pick up the object and proceed to location 2
         self.update_database(
-            self.current_object, self.current_object_location, "remove"
+            self.current_object, self.current_object_pose, "remove"
         )
         if not self.navigate_to_point(location_2):
             if self.navigate_to_point(self.current_object_location):
                 self.update_database(
-                    self.current_object, self.current_object_location, "free"
+                    self.current_object, self.current_object_pose, "free"
                 )
                 self.abort_task(
                     f"Failed to reach location {location_2} for object {self.current_object}. Kept object back at {self.current_object_location}."
@@ -234,7 +252,7 @@ class RobotStateNode:
 
             self.leave_object_at_current_location()
             self.update_database(
-                self.current_object, self.current_object_location, "free"
+                self.current_object, self.current_object_pose, "free"
             )
             self.abort_task(
                 f"Task aborted: Unable to move {self.current_object} to {location_2}. Keep it at {self.current_object_location}."
@@ -243,7 +261,8 @@ class RobotStateNode:
             return
         # Task of type 1 completed successfully
         rospy.loginfo(f"Kept object {self.current_object} at {location_2}.")
-        self.update_database(self.current_object, location_2, "free")
+        self.leave_object_at_current_location()
+        self.update_database(self.current_object, self.current_object_pose, "free")
         self.cleanup_after_task()
         return
 
@@ -251,27 +270,27 @@ class RobotStateNode:
     def interact_object(self, location_1: PoseStamped, location_2: PoseStamped):
         rospy.loginfo(f"Going to {location_1}")
         self.update_database(
-            self.current_object, self.current_object_location, "occupied"
+            self.current_object, self.current_object_pose, "occupied"
         )
         if not self.navigate_to_point(location_1):
             self.abort_task(
                 f"Failed to reach location {location_1} to interact with {self.current_object}."
             )
             self.update_database(
-                self.current_object, self.current_object_location, "free"
+                self.current_object, self.current_object_pose, "free"
             )
             self.cleanup_after_task()
             return
 
         if not self.perform_rotation_check(self.current_object):
             self.update_database(
-                self.current_object, self.current_object_location, "remove"
+                self.current_object, self.current_object_pose, "remove"
             )
             self.abort_task(f"Object {self.current_object} not found at {location_1}.")
             self.cleanup_after_task()
             return
         rospy.loginfo(f"Interacted with the object {self.current_object}")
-        self.update_database(self.current_object, self.current_object_location, "free")
+        self.update_database(self.current_object, self.current_object_pose, "free")
         self.cleanup_after_task()
         return
 
@@ -279,28 +298,28 @@ class RobotStateNode:
     def move_object(self, location_1: PoseStamped, location_2: PoseStamped):
         rospy.loginfo(f"Going to {location_1} for getting {self.current_object}")
         self.update_database(
-            self.current_object, self.current_object_location, "occupied"
+            self.current_object, self.current_object_pose, "occupied"
         )
         if not self.navigate_to_point(location_1):
             self.abort_task(
                 f"Failed to reach location {location_1} to pick up {self.current_object}."
             )
             self.update_database(
-                self.current_object, self.current_object_location, "free"
+                self.current_object, self.current_object_pose, "free"
             )
             self.cleanup_after_task()
             return
 
         if not self.perform_rotation_check(self.current_object):  # Checking for object
             self.update_database(
-                self.current_object, self.current_object_location, "remove"
+                self.current_object, self.current_object_pose, "remove"
             )
             self.abort_task(f"Object {self.current_object} not found at {location_1}.")
             self.cleanup_after_task()
             return
 
         self.update_database(
-            self.current_object, self.current_object_location, "remove"
+            self.current_object, self.current_object_pose, "remove"
         )  # Picking up the object
         rospy.loginfo(
             f"Picked object {self.current_object} from {location_1}. Going to {location_2}"
@@ -310,7 +329,7 @@ class RobotStateNode:
                 location_1
             ):  # Failed to go to location 2 going back to location 1
                 self.update_database(
-                    self.current_object, self.current_object_location, "free"
+                    self.current_object, self.current_object_pose, "free"
                 )
                 self.abort_task(
                     f"Failed to return to go to {location_2}. Returned object at {self.current_object_location}"
@@ -320,15 +339,16 @@ class RobotStateNode:
 
             self.leave_object_at_current_location()  # Failed to go to location 2 keeping object back at current place
             self.update_database(
-                self.current_object, self.current_object_location, "free"
+                self.current_object, self.current_object_pose, "free"
             )
             self.abort_task(
                 f"Task aborted: Unable to move {self.current_object} to {location_2}. Keep in {self.current_object_location}"
             )
             self.cleanup_after_task()
         # Reached location 2
+        self.leave_object_at_current_location()
         self.update_database(
-            self.current_object, location_2, "free"
+            self.current_object, self.current_object_pose, "free"
         )  # Keeping the object at location 2
         rospy.loginfo(f"Kept object at {location_2}")
         self.cleanup_after_task()
@@ -347,7 +367,7 @@ class RobotStateNode:
         # Failed to reach the loction or find object, aborting task
         if state == 0:
             self.update_database(
-                self.current_object, self.current_object_location, "free"
+                self.current_object, self.current_object_pose, "free"
             )
             self.abort_task(
                 f"Failed to reach location {self.current_object_location} or find object {self.current_object}."
@@ -358,7 +378,7 @@ class RobotStateNode:
         # Reached the deignated location 1 rotating to find the object
         if state == 1 and not self.perform_rotation_check(self.current_object):
             self.update_database(
-                self.current_object, self.current_object_location, "remove"
+                self.current_object, self.current_object_pose, "remove"
             )
             self.abort_task(
                 f"Object {self.current_object} not found at {self.current_object_location}."
@@ -369,7 +389,7 @@ class RobotStateNode:
         rospy.loginfo(
             f"Object {self.current_object} found at {self.current_object_location}."  # Found object
         )
-        self.update_database(self.current_object, self.current_object_location, "free")
+        self.update_database(self.current_object, self.current_object_pose, "free")
         self.cleanup_after_task()
         return
 
@@ -456,6 +476,7 @@ class RobotStateNode:
             rospy.loginfo(f"Rotation attempt {attempt + 1}/{self.rotation_attempts}.")
             self.start_rotation()
 
+            self.finding = False
             if self.acquired_object:
                 return True
 
@@ -473,6 +494,8 @@ class RobotStateNode:
         self.current_object = None
         self.acquired_object = False
         self.task_type = None
+        self.finding = False
+        self.current_object_pose = None
         self.state = self.default_state
 
     def publish_waypoint(self, location: PoseStamped):
@@ -544,6 +567,7 @@ class RobotStateNode:
         self.current_object_location.pose.orientation.x = rot[0]
         self.current_object_location.pose.orientation.y = rot[1]
         self.current_object_location.pose.orientation.z = rot[2]
+        self.current_object_pose = self.current_object_location
         rospy.logwarn("Leaving object at current location.")
 
     def abort_task(self, reason: str):
