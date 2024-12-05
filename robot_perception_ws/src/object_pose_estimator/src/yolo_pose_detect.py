@@ -18,7 +18,7 @@ class ObjectDetectorPoseEstimator:
         rospy.init_node("object_detector_pose_estimator", anonymous=True)
 
         # Get namespace from ROS arguments
-        namespace = rospy.get_param("~namespace", "")
+        namespace = rospy.get_param("yolo_detect/robot_namespace", "")
 
         # YOLO model setup
         self.model = YOLO("yolo11n.pt")  # Load pretrained YOLO model
@@ -175,9 +175,9 @@ class ObjectDetectorPoseEstimator:
             image_msg = self.bridge.cv2_to_imgmsg(self.rgb_image, "bgr8")
             self.image_pub.publish(image_msg)
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     try:
         detector = ObjectDetectorPoseEstimator()
         rospy.spin()
     except rospy.ROSInterruptException:
-        pass
+        pass
