@@ -55,10 +55,12 @@ class PoseDatabaseNode:
          self.x_pose=msg.pose.position.x
          self.y_pose=msg.pose.position.y
          self.z_pose=msg.pose.position.z
-    
-    def label_callback(self,msg):
-         self.label=msg
-         
+
+    def callback(data, subscriber_id):
+        rospy.loginfo(f"Subscriber {subscriber_id} received: {data.data}")
+        def label_callback(self,msg):
+            self.label=msg
+            
     def handle_update_pose(self, req):
         """Callback for the UpdatePose service."""
         rospy.loginfo(f"Received update request for object: {self.label}")
