@@ -3,7 +3,7 @@
 import rospy
 from robot_manager.msg import Task
 from robot_manager.srv import GetFreeRobots, GetTaskCost
-from task_data_services.srv import QueryObjectLocations
+from task_data_services.srv import QueryObjectLocations # TODO srv
 from geometry_msgs.msg import PoseStamped
 import heapq
 import numpy as np
@@ -132,7 +132,7 @@ def assign_tasks():
                 data = task.description
                 task_locations = task.locations
                 # Get metadata for the task
-                object_locations_client = rospy.ServiceProxy(
+                object_locations_client = rospy.ServiceProxy(       # TODO objects locs srv
                     "/task_data_service/QueryTaskData", QueryObjectLocations
                 )
                 object_locations = object_locations_client(data[1]).locations

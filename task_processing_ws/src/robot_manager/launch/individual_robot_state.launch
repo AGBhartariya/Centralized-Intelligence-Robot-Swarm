@@ -6,7 +6,7 @@
   <node 
     pkg="robot_manager" 
     type="individual_robot_state.py" 
-    name="individual_robot_state" 
+    name="individual_robot_state_$(arg robot_namespace)" 
     output="screen">
 
     <!-- Pass the robot_namespace parameter -->

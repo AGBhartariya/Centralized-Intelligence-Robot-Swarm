@@ -27,10 +27,6 @@ class PoseDatabaseNode:
         # Connect to MongoDB
         self._connect_to_mongo()
 
-        # Advertise the UpdatePose service
-        self.pose_sub = rospy.Subscriber("/detected_pose", PoseStamped, self.pose_callback)
-        self.label_sub = rospy.Subscriber("/detected_label", Int32, self.label_callback)
-        
         self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
         
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
@@ -53,7 +49,7 @@ class PoseDatabaseNode:
             rospy.logerr(f"MongoDB operation failed: {e}")
             raise
 
-    def create_subscribers(n):
+    def create_subscribers(self, n):
         subscribers = []
         for i in range(n):
             topic_name = f"/ugv{i}/detected_object"

@@ -17,8 +17,9 @@ fi
 
 # Launch the ROS node N times
 for ((i=1; i<=N; i++)); do
-  echo "Launching $NODE_NAME with $PARAM_NAME=$i"
-  roslaunch robot_manager  individual_robot_state.launch robot_namespace:="ugv"$i &
+  # echo "Launching $NODE_NAME with $PARAM_NAME=$i"
+  roslaunch robot_manager  individual_robot_state.launch robot_namespace:="ugv$i" &
+  sleep 5
   # Optionally add a delay if needed between launches
   # sleep 1
 done
