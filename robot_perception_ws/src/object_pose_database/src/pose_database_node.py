@@ -33,7 +33,7 @@ class PoseDatabaseNode:
         self._connect_to_mongo()
 
         self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
-        self.service = rospy.Service("query_loc", QueryObjectLocations, self.q_callback )
+        self.service = rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
         
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
         
@@ -173,8 +173,8 @@ class PoseDatabaseNode:
             else:
                 return f"No matching document found for {task_object} at location {pose}."
 
-    def query_free_objects(self, task_object):
-
+    def query_free_objects(self, req):
+        task_object=req.objectType
         query = {
             "object_id": task_object,
             "status": "free"
@@ -236,6 +236,32 @@ class PoseDatabaseNode:
 
         rospy.loginfo(f"Returning {len(response_points)} sampled points.")
         return ClusterAndSampleResponse(success=True, points=response_points, cluster_ids=cluster_ids)
+    
+    def query_objects_by_robot_location_and_id(self, robot_location, object_id):
+        # Define the query
+        query = {
+            "robot_location": {
+                "rx": {"$eq": robot_location["x"]},
+                "ry": {"$eq": robot_location["y"]},
+                "rz": {"$eq": robot_location["z"]},
+            },
+            "object_id": object_id
+        }
+
+        try:
+            # Perform the query
+            results = list(self.collection.find(query, {"_id": 0, "position": 1}))
+            
+            # Extract positions from the results
+            positions = [result["position"] for result in results]
+            
+            rospy.loginfo(f"Found {len(positions)} objects detected by robot at location {robot_location}.")
+            return positions
+
+        except Exception as e:
+            rospy.logerr(f"Failed to query database: {e}")
+            return []
+
 
 
 if __name__ == "_main_":
