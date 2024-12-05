@@ -27,7 +27,7 @@ export LAUNCH_EXPLORATION_AUTO=1 # for starting automatically the exploration mi
 # select the world for the exploration simulation: specify here the world name you want
 WORLD_NAME="warehouse.world"
 
-export NUM_ROBOTS=3
+export NUM_ROBOTS=4
 echo "NUM_ROBOTS: $NUM_ROBOTS"  
 
 export ENABLE_MULTI_ROBOT_COORDINATION="true" # true or false  enable/disable multi-robot coordination on path-planning level
