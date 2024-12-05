@@ -37,7 +37,7 @@ catkin_package(
 
 catkin_install_python(PROGRAMS
   src/individual_robot_state.py  # Path to your Python executable
-  src/robot_manager.py
+  src/robot_manager_main.py
   src/robot_state_manager.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
