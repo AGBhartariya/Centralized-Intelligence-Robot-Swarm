@@ -542,11 +542,9 @@ class RobotStateNode:
             request.status = status
             request.pose = pose
             response = update_data(request)
+            return response
         except rospy.ServiceException as e:
-            print("Service call failed: %s"%e)
-
-
-        return
+            return "Service call failed: %s"%e
 
     def leave_object_at_current_location(self):
         (trans, rot) = self.tf_listener.lookupTransform(
