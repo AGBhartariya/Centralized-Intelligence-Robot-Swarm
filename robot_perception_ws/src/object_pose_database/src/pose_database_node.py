@@ -172,25 +172,17 @@ class PoseDatabaseNode:
             else:
                 return f"No matching document found for {task_object} at location {pose}."
 
-    def q_callback(self):
-        pass #TODO
-
-    def query_free_objects(self, task_object, pose):
+    def query_free_objects(self, task_object):
 
         query = {
             "object_id": task_object,
-            "status": "free",
-            "position": {
-                "x": {"$gte": pose["position"]["x"] - self.tolerance, "$lte": pose["position"]["x"] + self.tolerance},
-                "y": {"$gte": pose["position"]["y"] - self.tolerance, "$lte": pose["position"]["y"] + self.tolerance},
-                "z": {"$gte": pose["position"]["z"] - self.tolerance, "$lte": pose["position"]["z"] + self.tolerance},
-            },
+            "status": "free"
         }
 
         try:
-            # Perform the query
-            results = list(self.collection.find(query))
-            rospy.loginfo(f"Found {len(results)} matching documents with status='free' for object ID {object_id}.")
+        # Perform the query
+            results = list(self.collection.find(query, {"_id": 0, "position": 1}))
+            rospy.loginfo(f"Found {len(results)} matching documents with status='free' for object ID {task_object}.")
             return results
         except Exception as e:
             rospy.logerr(f"Failed to query database: {e}")
