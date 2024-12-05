@@ -19,7 +19,7 @@ class RobotStateManager:
         rospy.init_node("robot_state_manager", anonymous=True)
 
         # Get number of robots from ROS parameter
-        self.num_robots = rospy.get_param("~numRobots", 1)
+        self.num_robots = rospy.get_param("~num_robots", 1)
 
         # Time interval for point sampling (in minutes, converted to seconds)
         self.sampling_interval = rospy.get_param("~sampling_interval", 1) * 60
