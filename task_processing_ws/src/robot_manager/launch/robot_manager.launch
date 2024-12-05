@@ -1,6 +1,6 @@
 <launch>
   <!-- Declare num_robots and sampling_interval as arguments -->
-  <arg name="num_robots" default="3"/>
+  <arg name="num_robots" default="4"/>
   <arg name="sampling_interval" default="600"/>
 
     <!-- Launch the robot_state_manager node -->

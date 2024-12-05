@@ -14,11 +14,11 @@ import ros_numpy
 import cv2
 
 class ObjectDetectorPoseEstimator:
-    def _init_(self):
+    def __init__(self):
         rospy.init_node("object_detector_pose_estimator", anonymous=True)
 
         # Get namespace from ROS arguments
-        namespace = rospy.get_param("yolo_detect/robot_namespace", "")
+        namespace = rospy.get_param("yolo_detect/robot_namespace", "robot")
 
         # YOLO model setup
         self.model = YOLO("yolo11n.pt")  # Load pretrained YOLO model
@@ -175,7 +175,7 @@ class ObjectDetectorPoseEstimator:
             image_msg = self.bridge.cv2_to_imgmsg(self.rgb_image, "bgr8")
             self.image_pub.publish(image_msg)
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     try:
         detector = ObjectDetectorPoseEstimator()
         rospy.spin()
