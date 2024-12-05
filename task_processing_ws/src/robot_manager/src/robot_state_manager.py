@@ -61,7 +61,7 @@ class RobotStateManager:
         for marker in msg.markers:
             if marker.menu_entries:
                 for entry in marker.menu_entries:
-                    if entry.title == "NoGain":
+                    if entry.title == "No Exploration Gain":
                         no_gain_detected = True
                         break
 
