@@ -8,7 +8,10 @@ from std_msgs.msg import Int32
 from object_pose_database.msg import DetectObject
 from object_pose_database.srv import UpdateDatabase
 from task_data_services.srv import QueryObjectLocations 
-
+from sklearn.cluster import KMeans
+from random import sample
+import numpy as np
+from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
 import math
 
 class PoseDatabaseNode:
@@ -192,6 +195,55 @@ class PoseDatabaseNode:
         except Exception as e:
             rospy.logerr(f"Failed to query database: {e}")
             return []
+
+    def cluster_and_sample_callback(self, req):
+        num_points_per_cluster = req.num_points_per_cluster
+
+        # Fetch all points from the database
+        try:
+            cursor = self.collection.find({}, {"position": 1, "_id": 0})
+            all_points = [
+                (point["position"]["x"], point["position"]["y"], point["position"]["z"])
+                for point in cursor
+            ]
+        except Exception as e:
+            rospy.logerr(f"Failed to fetch points from the database: {e}")
+            return ClusterAndSampleResponse(success=False, message="Database fetch error.", points=[], cluster_ids=[])
+
+        if len(all_points) < 1:
+            rospy.logwarn("No points found in the database to cluster.")
+            return ClusterAndSampleResponse(success=False, message="No points available.", points=[], cluster_ids=[])
+
+        points_array = np.array(all_points)
+        k = self.fetch_cluster_count()
+
+        try:
+            kmeans = KMeans(n_clusters=k, random_state=42)
+            labels = kmeans.fit_predict(points_array)
+        except Exception as e:
+            rospy.logerr(f"Clustering algorithm failed: {e}")
+            return ClusterAndSampleResponse(success=False, message="Clustering error.", points=[], cluster_ids=[])
+
+        cluster_points = defaultdict(list)
+        for label, point in zip(labels, points_array):
+            cluster_points[label].append(point)
+
+        # Sample points from each cluster
+        response_points = []
+        cluster_ids = []
+        for cluster_id, points in cluster_points.items():
+            rospy.loginfo(f"Cluster {cluster_id} has {len(points)} points.")
+
+            # Randomly sample points from this cluster (or take fewer if not enough points)
+            sampled_points = sample(points, min(num_points_per_cluster, len(points)))
+
+            # Convert sampled points to geometry_msgs/Point
+            response_points.extend([Point(x=p[0], y=p[1], z=p[2]) for p in sampled_points])
+            cluster_ids.extend([cluster_id] * len(sampled_points))
+
+        rospy.loginfo(f"Returning {len(response_points)} sampled points.")
+        return ClusterAndSampleResponse(success=True, points=response_points, cluster_ids=cluster_ids)
+
 
 if __name__ == "_main_":
     try:

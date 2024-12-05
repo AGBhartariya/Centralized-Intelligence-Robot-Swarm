@@ -7,9 +7,9 @@
 
         <!-- Launch the individual_robot_state node -->
         <node 
-            pkg="robot_manager" 
-            type="individual_robot_state.py" 
-            name="individual_robot_state" 
+            pkg="object_pose_estimator" 
+            type="yolo_pose_detect.py" 
+            name="yolo_detect" 
             output="screen">
 
             <!-- Pass the robot_namespace parameter -->
