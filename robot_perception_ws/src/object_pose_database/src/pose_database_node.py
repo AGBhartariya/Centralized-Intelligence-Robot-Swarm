@@ -127,7 +127,7 @@ class PoseDatabaseNode:
         except Exception as e:
             rospy.logerr(f"Failed to update pose in the database: {e}")
 
-if _name_ == "_main_":
+if __name__ == "_main_":
     try:
         PoseDatabaseNode()
         rospy.spin()

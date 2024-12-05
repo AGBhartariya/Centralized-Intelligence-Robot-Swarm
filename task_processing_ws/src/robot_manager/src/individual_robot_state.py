@@ -8,21 +8,6 @@ from object_pose_database.msg import DetectObject
 from robot_manager.msg import Task
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
-from pymongo.server_api import ServerApi
-from pymongo.mongo_client import MongoClient
-import sys
-
-sys.path.append('robot_perception_ws/src/object_pose_estimator/src/yolo_pose_detect.py')
-uri = "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment"
-client = MongoClient(uri, server_api=ServerApi("1"))
-try:
-    client.admin.command("ping")
-    print("Pinged your deployment. You successfully connected to MongoDB!")
-except Exception as e:
-    print(e)
-db = client["world"]
-collection = db["object"]
-
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
@@ -189,7 +174,7 @@ class RobotStateNode:
 
         temp = GetObjectPoseRequest()
         temp.objectId = self.current_object
-        temp.location = self.current_object_location
+        temp.robot_location = self.current_object_location
 
         self.current_object_pose = self.getObjectPose(temp).pose
         self.task_type = task_type

@@ -1,6 +1,6 @@
 #Request
 int32 objectId
-geometry_msgs/PoseStamped location
+geometry_msgs/PoseStamped robot_location
 ---
 #Response
 geometry_msgs/PoseStamped pose
