@@ -235,6 +235,32 @@ class PoseDatabaseNode:
 
         rospy.loginfo(f"Returning {len(response_points)} sampled points.")
         return ClusterAndSampleResponse(success=True, points=response_points, cluster_ids=cluster_ids)
+    
+    def query_objects_by_robot_location_and_id(self, robot_location, object_id):
+        # Define the query
+        query = {
+            "robot_location": {
+                "rx": {"$eq": robot_location["x"]},
+                "ry": {"$eq": robot_location["y"]},
+                "rz": {"$eq": robot_location["z"]},
+            },
+            "object_id": object_id
+        }
+
+        try:
+            # Perform the query
+            results = list(self.collection.find(query, {"_id": 0, "position": 1}))
+            
+            # Extract positions from the results
+            positions = [result["position"] for result in results]
+            
+            rospy.loginfo(f"Found {len(positions)} objects detected by robot at location {robot_location}.")
+            return positions
+
+        except Exception as e:
+            rospy.logerr(f"Failed to query database: {e}")
+            return []
+
 
 
 if __name__ == "_main_":
