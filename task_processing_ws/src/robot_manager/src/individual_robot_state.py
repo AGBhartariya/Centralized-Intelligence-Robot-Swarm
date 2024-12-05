@@ -10,7 +10,9 @@ from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
 from pymongo.server_api import ServerApi
 from pymongo.mongo_client import MongoClient
+import sys
 
+sys.path.append('robot_perception_ws/src/object_pose_estimator/src/yolo_pose_detect.py')
 uri = "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment"
 client = MongoClient(uri, server_api=ServerApi("1"))
 try:
@@ -542,19 +544,48 @@ class RobotStateNode:
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
 
-    def update_database(self, task_object, object_location, status):
+    def update_database(self, task_object, location, status):
         """
         Database update logic.
         """
         if status == "free":
-            data = {
-                "object_type": task_object,
-                "location": object_location,
-                "status": status,
-            }
+                data = {
+                    "object_type": task_object,
+                    "position": location,
+                    "status": status,
+                    "confidence": 0.8
+                    }
+                insert_doc = collection.insert_one(data)
+                print(f"inserted Document ID : {insert_doc.inserted_id}")
 
-        insert_doc = collection.insert_one(data)
-        print(f"inserted Document ID : {insert_doc.inserted_id}")
+        elif status == "occupied":
+               query = {
+                    "object_type": task_object,
+                    "position": location,
+                    "status": "free"
+                }
+               update_data = {
+                    "$set": {
+                        "status": "occupied",
+                    }
+                }
+               result = collection.update_one(query, update_data)
+               if result.matched_count > 0:
+                    print(f"Successfully updated {task_object} at {location} to 'occupied'.")
+               else:
+                    print(f"No matching document found to update for {task_object} at {location}.")
+               
+        if status == "remove":
+            query = {
+            "object_type": task_object,
+            "position": location
+            }
+            result = collection.delete_one(query)
+            if result.deleted_count > 0:
+                print(f"Successfully removed {task_object} from location {location}.")
+            else:
+                print(f"No matching document found for {task_object} at location {location}.")
+
         return
 
     def leave_object_at_current_location(self):
