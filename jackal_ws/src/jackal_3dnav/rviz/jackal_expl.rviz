@@ -3,7 +3,10 @@ Panels:
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded: ~
+      Expanded:
+        - /UGV21
+        - /RobotModel1
+        - /RobotModel2
       Splitter Ratio: 0.824867308139801
     Tree Height: 418
   - Class: rviz/Selection
@@ -2250,6 +2253,210 @@ Visualization Manager:
           Value: true
       Enabled: true
       Name: ugv2 - elevation mapping
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        ugv3/base_footprint_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/camera_optical_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/chassis_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/fenders_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/front_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/front_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/front_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/laser_mount_cylinder:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/mid_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/navsat_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/ouster_imu:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/ouster_lidar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/ouster_sensor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/rear_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv3/rear_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv3/rear_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: ugv3/robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        ugv4/base_footprint_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/base_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/camera_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/camera_optical_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/chassis_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/fenders_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/front_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/front_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/front_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/laser_mount_cylinder:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/mid_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/navsat_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/ouster_imu:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/ouster_lidar:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/ouster_sensor:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/rear_left_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        ugv4/rear_mount:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        ugv4/rear_right_wheel_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: ugv4/robot_description
+      TF Prefix: ""
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -2281,7 +2488,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 17.743602752685547
+      Distance: 20.76186180114746
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2289,17 +2496,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 2.937067985534668
-        Y: -1.5753810405731201
-        Z: 0.08562875539064407
+        X: 2.4310851097106934
+        Y: 0.6475889086723328
+        Z: 1.6931982040405273
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.8297975659370422
+      Pitch: 1.1297974586486816
       Target Frame: <Fixed Frame>
-      Yaw: 4.245328426361084
+      Yaw: 3.7703280448913574
     Saved: ~
 Window Geometry:
   /ugv1/camera:
@@ -2321,5 +2528,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1908
-  X: 0
-  Y: 0
+  X: -32
+  Y: -32

@@ -1,7 +1,7 @@
 <launch>
   <arg name="task_reassignment_interval" default="10"/>
   <arg name="task_priority_increment" default="1"/>
-  <arg name="task_execution_interval" default="10"/>
+  <arg name="task_execution_interval" default="0.5"/>
     <!-- Launch the robot_state_manager node -->
   <node 
     pkg="task_manager" 

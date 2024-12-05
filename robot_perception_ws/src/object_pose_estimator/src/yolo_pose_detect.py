@@ -38,7 +38,7 @@ class ObjectDetectorPoseEstimator:
         self.camera_info_sub = rospy.Subscriber(f"realsense/color/camera_info", CameraInfo, self.camera_info_callback)
 
         # Publisher
-        self.detected_object_pub = rospy.Publisher(f"detected_object", DetectObject, queue_size=10)
+        self.detected_object_pub = rospy.Publisher(f"detect_object", DetectObject, queue_size=10)
         self.image_pub = rospy.Publisher(f"detectedImage", Image, queue_size=10)
 
         # ROS parameters
