@@ -39,19 +39,20 @@ class TaskPublisher:
                 x1 = 1
 
             task_type = x1
-            task.description = f"Task type {task_type}"
-            x2 = input("Enter task object/target (string): ")
+            x2 = input("Enter task object/target (integer id): ")
+
+            task.description = [x1, x2]
+            x3 = PoseStamped()
+            x4 = PoseStamped()
 
             if task_type in [2, 3]:
                 x3 = self.get_pose("initial location")
-                task.x3 = x3
 
             if task_type in [1, 3, 5]:
                 x4 = self.get_pose("destination location")
-                task.x4 = x4
+            
+            task.locations = [x3, x4]
 
-            task.task_type = task_type
-            task.target = x2
             rospy.loginfo(f"Created task: {task}")
 
         except ValueError:
