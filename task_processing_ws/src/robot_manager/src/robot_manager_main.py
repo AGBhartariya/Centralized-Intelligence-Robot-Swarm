@@ -7,7 +7,6 @@ from robot_manager.srv import GetState  # Add GetState service for each robot
 import numpy as np
 from trajectory_control_msgs.srv import GetCostPath, GetCostPathRequest
 
-
 class RobotManager:
     def __init__(self):
         rospy.init_node("robot_manager")

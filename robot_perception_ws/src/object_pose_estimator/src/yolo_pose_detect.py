@@ -3,8 +3,7 @@
 import rospy
 import numpy as np
 import open3d as o3d
-from sensor_msgs.msg import Image, CameraInfo, PointCloud2
-from object_pose_database.msg import DetectObject
+from sensor_msgs.msg import Image, CameraInfo, PointCloud2 # TODO: Create the detected object message
 from geometry_msgs.msg import PoseStamped
 from std_msgs.msg import Int32
 from cv_bridge import CvBridge
@@ -32,14 +31,15 @@ class ObjectDetectorPoseEstimator:
         self.camera_matrix = None
         
         # Subscribers
-        self.rgb_sub = rospy.Subscriber(f"/{namespace}/realsense/color/image_raw", Image, self.rgb_callback)
-        self.depth_sub = rospy.Subscriber(f"/{namespace}/realsense/depth/image_rect_raw", Image, self.depth_callback)
-        self.pc_sub = rospy.Subscriber(f"/{namespace}/realsense/depth/color/points", PointCloud2, self.pc_callback)
-        self.camera_info_sub = rospy.Subscriber(f"/{namespace}/realsense/color/camera_info", CameraInfo, self.camera_info_callback)
+        self.rgb_sub = rospy.Subscriber("/realsense/color/image_raw", Image, self.rgb_callback)
+        self.depth_sub = rospy.Subscriber("/realsense/depth/image_rect_raw", Image, self.depth_callback)
+        self.pc_sub = rospy.Subscriber("/realsense/depth/color/points", PointCloud2, self.pc_callback)
+        self.camera_info_sub = rospy.Subscriber("/realsense/color/camera_info", CameraInfo, self.camera_info_callback)
 
-        # Publisher
-        self.detected_object_pub = rospy.Publisher(f"/{namespace}/detected_object", DetectObject, queue_size=10)
-        self.image_pub = rospy.Publisher(f"/{namespace}/detectedImage", Image, queue_size=10)
+        # Publishers
+        self.pose_pub = rospy.Publisher("/detected_pose", PoseStamped, queue_size=10)  # TODO: Use the detect object message rate for the rostopic rather than 2 separate topics
+        self.label_pub = rospy.Publisher("/detected_label", Int32, queue_size=10)
+        self.image_pub = rospy.Publisher("/detectedImage", Image, queue_size=10)
 
         # ROS parameters
         self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.8)
@@ -131,12 +131,13 @@ class ObjectDetectorPoseEstimator:
 
         for result in results:
             for box in result.boxes:
-                confidence = box.conf.item()
+                confidence = box.conf
                 if confidence >= self.confidence_threshold:
                     detected = True
                     bbox = box.xyxy.int().tolist()[0]
                     class_idx = int(box.cls.item())  # Convert tensor to integer
-
+                    label = result.names[class_idx]
+                    rospy.loginfo(bbox)
                     points = self.extract_points_from_bbox(bbox)
                     if points is not None:
                         pose = self.estimate_pose(points)
@@ -144,11 +145,7 @@ class ObjectDetectorPoseEstimator:
                             centroid, orientation = pose
                             q = self.rotation_matrix_to_quaternion(orientation)
 
-                            # Publish DetectObject message
-                            detect_msg = DetectObject()
-                            detect_msg.objectId = class_idx
-                            detect_msg.confidence = int(confidence * 100)
-
+                            # Publish PoseStamped message
                             pose_msg = PoseStamped()
                             pose_msg.header.stamp = rospy.Time.now()
                             pose_msg.header.frame_id = "camera_frame"
@@ -159,9 +156,15 @@ class ObjectDetectorPoseEstimator:
                             pose_msg.pose.orientation.y = q[1]
                             pose_msg.pose.orientation.z = q[2]
                             pose_msg.pose.orientation.w = q[3]
-                            detect_msg.pose = pose_msg
 
-                            self.detected_object_pub.publish(detect_msg)
+                            self.pose_pub.publish(pose_msg)
+                            
+                            # Publish label
+                            label_msg = Int32()
+                            label_msg.data = class_idx
+                            self.label_pub.publish(label_msg)
+
+                            # rospy.loginfo(f"Detected {label} with pose: {pose_msg}")
 
                             # Visualize pose if parameter is true
                             if self.visualize_detected_pose:

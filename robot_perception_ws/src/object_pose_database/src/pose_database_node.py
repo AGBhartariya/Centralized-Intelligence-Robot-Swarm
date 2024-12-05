@@ -6,17 +6,14 @@ from pymongo.errors import OperationFailure
 from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import Int32
 from object_pose_database.srv import UpdatePose, UpdatePoseResponse
+from object_pose_database.msg import DetectObject
+
 import math
 
 class PoseDatabaseNode:
     def _init_(self):
         # Initialize the ROS node
         rospy.init_node("pose_database_node")
-
-        self.x_pose = None
-        self.y_pose = None
-        self.z_pose = None
-        self.label = None
 
         # MongoDB connection details
         self.mongo_uri = rospy.get_param("~mongo_uri", "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment")
@@ -36,6 +33,10 @@ class PoseDatabaseNode:
         
         self.service = rospy.Service("update_pose", UpdatePose, self.handle_update_pose)
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
+        
+        n = rospy.get_param("~no_of_robots", "4")
+
+        self.create_subscribers(n)
 
     def _connect_to_mongo(self):
         """Connect to the MongoDB instance."""
@@ -51,30 +52,30 @@ class PoseDatabaseNode:
             rospy.logerr(f"MongoDB operation failed: {e}")
             raise
 
-    def pose_callback(self,msg: PoseStamped):
-         self.x_pose=msg.pose.position.x
-         self.y_pose=msg.pose.position.y
-         self.z_pose=msg.pose.position.z
+    def create_subscribers(n):
+        subscribers = []
+        for i in range(n):
+            topic_name = f"/ugv{i}/detected_object"
+            data_sub = rospy.Subscriber(topic_name, DetectObject, self.callback, callback_args=i)
+            subscribers.append(data_sub)
+    
+    def callback(self, msg: DetectObject, subscriber_id):
+        self.handle_update_pose(msg)
 
-    def callback(data, subscriber_id):
-        rospy.loginfo(f"Subscriber {subscriber_id} received: {data.data}")
-        def label_callback(self,msg):
-            self.label=msg
-            
-    def handle_update_pose(self, req):
+    def handle_update_pose(self, data):
         """Callback for the UpdatePose service."""
-        rospy.loginfo(f"Received update request for object: {self.label}")
+        rospy.loginfo(f"Received update request for object:")
 
         # Convert Pose message to a dictionary
         pose_dict = {
-            "object_name": self.label,
+            "object_name": data.object_id,
             "position": {
-                "x": self.x_pose,
-                "y": self.y_pose,
-                "z": self.z_pose
+                "x": data.pose.position.x,
+                "y": data.pose.position.y,
+                "z": data.pose.position.z
             }
         }
-        confidence_y = req.confidence
+        confidence_y = data.confidence
         matching_objects = self.find_matching_objects(pose_dict["position"])
 
         for obj in matching_objects:

@@ -529,47 +529,11 @@ class RobotStateNode:
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
 
-    def update_database(self, task_object, location, status):
+    def update_database(self, task_object, pose, status):
         """
         Database update logic.
         """
-        if status == "free":
-                data = {
-                    "object_type": task_object,
-                    "position": location,
-                    "status": status,
-                    "confidence": 0.8
-                    }
-                insert_doc = collection.insert_one(data)
-                print(f"inserted Document ID : {insert_doc.inserted_id}")
-
-        elif status == "occupied":
-               query = {
-                    "object_type": task_object,
-                    "position": location,
-                    "status": "free"
-                }
-               update_data = {
-                    "$set": {
-                        "status": "occupied",
-                    }
-                }
-               result = collection.update_one(query, update_data)
-               if result.matched_count > 0:
-                    print(f"Successfully updated {task_object} at {location} to 'occupied'.")
-               else:
-                    print(f"No matching document found to update for {task_object} at {location}.")
-               
-        if status == "remove":
-            query = {
-            "object_type": task_object,
-            "position": location
-            }
-            result = collection.delete_one(query)
-            if result.deleted_count > 0:
-                print(f"Successfully removed {task_object} from location {location}.")
-            else:
-                print(f"No matching document found for {task_object} at location {location}.")
+        
 
         return
 
