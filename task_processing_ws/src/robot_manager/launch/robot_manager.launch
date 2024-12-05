@@ -1,0 +1,27 @@
+<launch>
+  <!-- Declare num_robots and sampling_interval as arguments -->
+  <arg name="num_robots" default="1"/>
+  <arg name="sampling_interval" default="600"/>
+
+    <!-- Launch the robot_state_manager node -->
+  <node 
+    pkg="robot_manager" 
+    type="robot_state_manager.py" 
+    name="robot_state_manager" 
+    output="screen">
+
+    <!-- Pass the num_robots and sampling_interval parameters -->
+    <param name="num_robots" value="$(arg num_robots)"/>
+    <param name="sampling_interval" value="$(arg sampling_interval)"/>
+
+    </node>
+
+  <node 
+    pkg="robot_manager" 
+    type="robot_state_manager.py" 
+    name="robot_state_manager" 
+    output="screen">
+    
+    <param name="num_robots" value="$(arg num_robots)"/>
+  </node>
+</launch>

@@ -19,8 +19,6 @@ class ObjectDetectorPoseEstimator:
 
         # Get namespace from ROS arguments
         namespace = rospy.get_param("~namespace", "")
-        if namespace and not namespace.endswith("/"):
-            namespace += "/"
 
         # YOLO model setup
         self.model = YOLO("yolo11n.pt")  # Load pretrained YOLO model
@@ -34,14 +32,14 @@ class ObjectDetectorPoseEstimator:
         self.camera_matrix = None
         
         # Subscribers
-        self.rgb_sub = rospy.Subscriber(f"{namespace}realsense/color/image_raw", Image, self.rgb_callback)
-        self.depth_sub = rospy.Subscriber(f"{namespace}realsense/depth/image_rect_raw", Image, self.depth_callback)
-        self.pc_sub = rospy.Subscriber(f"{namespace}realsense/depth/color/points", PointCloud2, self.pc_callback)
-        self.camera_info_sub = rospy.Subscriber(f"{namespace}realsense/color/camera_info", CameraInfo, self.camera_info_callback)
+        self.rgb_sub = rospy.Subscriber(f"/{namespace}/realsense/color/image_raw", Image, self.rgb_callback)
+        self.depth_sub = rospy.Subscriber(f"/{namespace}/realsense/depth/image_rect_raw", Image, self.depth_callback)
+        self.pc_sub = rospy.Subscriber(f"/{namespace}/realsense/depth/color/points", PointCloud2, self.pc_callback)
+        self.camera_info_sub = rospy.Subscriber(f"/{namespace}/realsense/color/camera_info", CameraInfo, self.camera_info_callback)
 
         # Publisher
-        self.detected_object_pub = rospy.Publisher(f"{namespace}detected_object", DetectObject, queue_size=10)
-        self.image_pub = rospy.Publisher(f"{namespace}detectedImage", Image, queue_size=10)
+        self.detected_object_pub = rospy.Publisher(f"/{namespace}/detected_object", DetectObject, queue_size=10)
+        self.image_pub = rospy.Publisher(f"/{namespace}/detectedImage", Image, queue_size=10)
 
         # ROS parameters
         self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.8)
