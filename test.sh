@@ -19,10 +19,22 @@ fi
 for ((i=1; i<=N; i++)); do
   # echo "Launching $NODE_NAME with $PARAM_NAME=$i"
   roslaunch robot_manager  individual_robot_state.launch robot_namespace:="ugv$i" &
-  sleep 5
+  sleep 1
   # Optionally add a delay if needed between launches
   # sleep 1
 done
+
+# Launch the ROS node N times
+for ((i=1; i<=N; i++)); do
+  # echo "Launching $NODE_NAME with $PARAM_NAME=$i"
+  roslaunch object_pose_estimator yolo_detect.launch robot_namespace:="ugv$i" &
+  sleep 1
+  # Optionally add a delay if needed between launches
+  # sleep 1
+done
+
+roslaunch robot_manager robot_manager.launch num_robots:=$n
+roslaunch task_manager task.launch
 
 # Optionally wait for all background processes to complete
 wait

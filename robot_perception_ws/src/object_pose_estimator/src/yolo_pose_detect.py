@@ -15,7 +15,7 @@ import cv2
 class ObjectDetectorPoseEstimator:
     def __init__(self):
         # Get namespace from ROS arguments
-        namespace = rospy.get_param("yolo_detect/namespace")
+        namespace = rospy.get_param("yolo_detect/robot_namespace")
 
         rospy.init_node(f"object_detector_pose_estimator_{namespace}")
 
