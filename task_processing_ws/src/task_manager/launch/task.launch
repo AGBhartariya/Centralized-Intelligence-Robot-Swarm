@@ -1,1 +1,23 @@
 <launch>
+  <arg name="task_reassignment_interval" default="10"/>
+  <arg name="task_priority_increment" default="1"/>
+  <arg name="task_execution_interval" default="10"/>
+    <!-- Launch the robot_state_manager node -->
+  <node 
+    pkg="task_manager" 
+    type="task_assigner.py" 
+    name="task_assigner" 
+    output="screen">
+
+<param name="task_reassignment_interval" type="int" value="$(arg task_reassignment)">
+<param name="task_priority_increment" type="int" value="$(arg task_priority_increment)">
+<param name="task_execution_interval" type="int" value="$(arg task_execution_interval)">
+    </node>
+
+  <node 
+    pkg="task_manager" 
+    type="task_publisher.py" 
+    name="task_publisher" 
+    output="screen">
+    </node>
+</launch>

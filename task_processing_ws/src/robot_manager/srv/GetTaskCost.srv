@@ -2,7 +2,7 @@
 int32 task_type
 geometry_msgs/PoseStamped[] objectlocations
 geometry_msgs/PoseStamped[] tasklocations
-int32 robot_id
+string robot_id
 ---
 # Response
 float32 cost

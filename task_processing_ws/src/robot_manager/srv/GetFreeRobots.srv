@@ -2,4 +2,4 @@
 ---
 # Response
 int32 free_robot_count
-int32[] robot_ids
+string[] robot_ids
