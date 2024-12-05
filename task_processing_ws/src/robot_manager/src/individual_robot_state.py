@@ -37,36 +37,36 @@ class RobotStateNode:
         self.rotation_attempts = 5  # Number of rotations at the location
 
         self.task_sub = rospy.Subscriber(
-            f"{self.namespace}/start_task", Task, self.execute_task
+            f"start_task", Task, self.execute_task
         )
         self.get_state_srv = rospy.Service(
-            f"{self.namespace}/get_state", GetState, self.get_state_service
+            f"get_state", GetState, self.get_state_service
         )
         self.patrol_sub = rospy.Subscriber(
-            f"{self.namespace}/patrol_waypoint", Point, self.go_to_patrol_waypoint
+            f"patrol_waypoint", Point, self.go_to_patrol_waypoint
         )
         self.isPatrolsub = rospy.Subscriber("isPatrolling", Bool, self.isPatroCallback)
         self.detect_object_sub = rospy.Subscriber(
-            f"{self.namespace}/detect_object",
+            f"detect_object",
             DetectObject,
             self.detect_object_callback,
         )
 
         self.battery_sub = rospy.Subscriber(
-            f"{self.namespace}/battery_level", Int32, self.battery_callback
+            f"battery_level", Int32, self.battery_callback
         )
         self.expl_pause_pub = rospy.Publisher(
-            f"{self.namespace}/expl_pause_topic", Bool, queue_size=1
+            f"expl_pause_topic", Bool, queue_size=1
         )
 
         self.cmd_vel_pub = rospy.Publisher(
-            f"{self.namespace}/cmd_vel", Twist, queue_size=1
+            f"cmd_vel", Twist, queue_size=1
         )
         self.task_pub = rospy.Publisher(
-            f"{self.namespace}/planner/tasks/append", PlanningTask, queue_size=10
+            f"planner/tasks/append", PlanningTask, queue_size=10
         )
         self.cancel_pub = rospy.Publisher(
-            f"{self.namespace}/planner/tasks/remove", PlanningTask, queue_size=10
+            f"planner/tasks/remove", PlanningTask, queue_size=10
         )
 
         self.getObjectPose = rospy.ServiceProxy('/getObjectPose', GetObjectPose)
@@ -591,7 +591,7 @@ class RobotStateNode:
 
 def main():
     try:
-        robot_namespace = rospy.get_param("~robot_namespace", "robot")
+        robot_namespace = rospy.get_param("individual_robot_state/robot_namespace", "robot")
         robot_state_node = RobotStateNode(robot_namespace)
         rospy.spin()
     except rospy.ROSInterruptException:

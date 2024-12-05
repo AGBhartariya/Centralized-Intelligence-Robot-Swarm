@@ -15,7 +15,7 @@ import cv2
 class ObjectDetectorPoseEstimator:
     def __init__(self):
         # Get namespace from ROS arguments
-        namespace = rospy.get_param("~namespace")
+        namespace = rospy.get_param("yolo_detect/namespace")
 
         rospy.init_node(f"object_detector_pose_estimator_{namespace}")
 
@@ -31,15 +31,15 @@ class ObjectDetectorPoseEstimator:
         self.camera_matrix = None
         
         # Subscribers
-        self.rgb_sub = rospy.Subscriber("/realsense/color/image_raw", Image, self.rgb_callback)
-        self.depth_sub = rospy.Subscriber("/realsense/depth/image_rect_raw", Image, self.depth_callback)
-        self.pc_sub = rospy.Subscriber("/realsense/depth/color/points", PointCloud2, self.pc_callback)
-        self.camera_info_sub = rospy.Subscriber("/realsense/color/camera_info", CameraInfo, self.camera_info_callback)
+        self.rgb_sub = rospy.Subscriber("realsense/color/image_raw", Image, self.rgb_callback)
+        self.depth_sub = rospy.Subscriber("realsense/depth/image_rect_raw", Image, self.depth_callback)
+        self.pc_sub = rospy.Subscriber("realsense/depth/color/points", PointCloud2, self.pc_callback)
+        self.camera_info_sub = rospy.Subscriber("realsense/color/camera_info", CameraInfo, self.camera_info_callback)
 
         # Publishers
-        self.pose_pub = rospy.Publisher("/detected_pose", PoseStamped, queue_size=10)  # TODO: Use the detect object message rate for the rostopic rather than 2 separate topics
-        self.label_pub = rospy.Publisher("/detected_label", Int32, queue_size=10)
-        self.image_pub = rospy.Publisher("/detectedImage", Image, queue_size=10)
+        self.pose_pub = rospy.Publisher("detected_pose", PoseStamped, queue_size=10)  # TODO: Use the detect object message rate for the rostopic rather than 2 separate topics
+        self.label_pub = rospy.Publisher("detected_label", Int32, queue_size=10)
+        self.image_pub = rospy.Publisher("detectedImage", Image, queue_size=10)
 
         # ROS parameters
         self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.8)
