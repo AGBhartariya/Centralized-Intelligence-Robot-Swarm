@@ -51,7 +51,7 @@ class PoseDatabaseNode:
             rospy.logerr(f"MongoDB operation failed: {e}")
             raise
 
-    def pose_callback(self,msg):
+    def pose_callback(self,msg: PoseStamped):
          self.x_pose=msg.pose.position.x
          self.y_pose=msg.pose.position.y
          self.z_pose=msg.pose.position.z

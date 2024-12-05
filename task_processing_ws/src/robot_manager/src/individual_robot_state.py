@@ -11,7 +11,7 @@ from trajectory_control_msgs.msg import PlanningTask
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
-        rospy.init_node("robot_state", anonymous=True)
+        rospy.init_node(f"robot_state_{robot_namespace}")
 
         self.namespace = robot_namespace
 
