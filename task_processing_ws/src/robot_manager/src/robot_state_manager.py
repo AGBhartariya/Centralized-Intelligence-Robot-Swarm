@@ -121,7 +121,7 @@ class RobotStateManager:
         # Compute Euclidean distance as the cost
         rospy.wait_for_service('cost_path')
         try:
-            cost_path = rospy.ServiceProxy('cost_path', GetCostPath)
+            cost_path = rospy.ServiceProxy('/trajectory_control_msgs/cost_path', GetCostPath)
             request = GetCostPathRequest()
             goal_point=goal_position.pose.position
             request.task.waypoints = [robot_position, goal_point] 

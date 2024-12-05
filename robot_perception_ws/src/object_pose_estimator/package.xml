@@ -13,11 +13,9 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
   <build_depend>object_pose_database</build_depend>
-  <build_depend>robot_manager</build_depend>
   <exec_depend>object_pose_database</exec_depend>
   <exec_depend>rospy</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>geometry_msgs</exec_depend>
-  <exec_depend>robot_manager</exec_depend>
 </package>
