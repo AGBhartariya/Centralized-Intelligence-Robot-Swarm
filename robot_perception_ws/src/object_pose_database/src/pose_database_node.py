@@ -5,8 +5,8 @@ from pymongo import MongoClient
 from pymongo.errors import OperationFailure
 from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import Int32
-from object_pose_database.srv import UpdatePose, UpdatePoseResponse
 from object_pose_database.msg import DetectObject
+from robot_manager.srv import UpdateDatabase, UpdateDatabaseResponse
 
 import math
 
@@ -31,7 +31,8 @@ class PoseDatabaseNode:
         self.pose_sub = rospy.Subscriber("/detected_pose", PoseStamped, self.pose_callback)
         self.label_sub = rospy.Subscriber("/detected_label", Int32, self.label_callback)
         
-        self.service = rospy.Service("update_pose", UpdatePose, self.handle_update_pose)
+        self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
+        
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
         
         n = rospy.get_param("~no_of_robots", "4")
@@ -64,11 +65,11 @@ class PoseDatabaseNode:
 
     def handle_update_pose(self, data):
         """Callback for the UpdatePose service."""
-        rospy.loginfo(f"Received update request for object:")
+        rospy.loginfo(f"Received update request for object")
 
         # Convert Pose message to a dictionary
         pose_dict = {
-            "object_name": data.object_id,
+            "object_Id": data.objectId,
             "position": {
                 "x": data.pose.position.x,
                 "y": data.pose.position.y,
@@ -85,7 +86,7 @@ class PoseDatabaseNode:
         if distance < self.epsilon:
                 confidence_z = obj.get("confidence", 0.8)
                 if confidence_y > confidence_z:
-                    rospy.loginfo(f"Updating object {req.object_name} in database with new pose and confidence.")
+                    rospy.loginfo(f"Updating object {data.objectId} in database with new pose and confidence.")
                     self.update_object_pose(obj, pose_dict, confidence_y)
                     return UpdatePoseResponse(success=True, message="Pose updated successfully.")
         return UpdatePoseResponse(success=False, message="No matching object found or confidence not improved.")
@@ -124,11 +125,74 @@ class PoseDatabaseNode:
         try:
             result = self.collection.update_one(query, update_data)
             if result.matched_count > 0:
-                rospy.loginfo(f"Object {obj['object_name']} updated in the database.")
+                rospy.loginfo(f"Object {obj['object_Id']} updated in the database.")
             else:
-                rospy.logwarn(f"Object {obj['object_name']} was not found for update.")
+                rospy.logwarn(f"Object {obj['object_Id']} was not found for update.")
         except Exception as e:
             rospy.logerr(f"Failed to update pose in the database: {e}")
+
+    def update_object_in_database(self, req):
+        task_object=req.task_object
+        pose= req.pose
+        status=req.status
+        if status == "free":
+            data = {
+                "object_Id": task_object,
+                "position": pose,
+                "status": status,
+                "confidence": 0.8
+            }
+            insert_doc = self.collection.insert_one(data)
+            return f"Inserted Document ID: {insert_doc.inserted_id}"
+
+        elif status == "occupied":
+            query = {
+                "object_Id": task_object,
+                "position": pose,
+                "status": "free"
+            }
+            update_data = {
+                "$set": {
+                    "status": "occupied",
+                }
+            }
+            result = self.collection.update_one(query, update_data)
+            if result.matched_count > 0:
+                return f"Successfully updated {task_object} at {pose} to 'occupied'."
+            else:
+                return f"No matching document found to update for {task_object} at {pose}."
+
+        elif status == "remove":
+            query = {
+                "object_Id": task_object,
+                "position": pose
+            }
+            result = self.collection.delete_one(query)
+            if result.deleted_count > 0:
+                return f"Successfully removed {task_object} from location {pose}."
+            else:
+                return f"No matching document found for {task_object} at location {pose}."
+
+    def query_free_objects(self, task_object, pose):
+
+        query = {
+            "object_id": task_object,
+            "status": "free",
+            "position": {
+                "x": {"$gte": pose["position"]["x"] - self.tolerance, "$lte": pose["position"]["x"] + self.tolerance},
+                "y": {"$gte": pose["position"]["y"] - self.tolerance, "$lte": pose["position"]["y"] + self.tolerance},
+                "z": {"$gte": pose["position"]["z"] - self.tolerance, "$lte": pose["position"]["z"] + self.tolerance},
+            },
+        }
+
+        try:
+            # Perform the query
+            results = list(self.collection.find(query))
+            rospy.loginfo(f"Found {len(results)} matching documents with status='free' for object ID {object_id}.")
+            return results
+        except Exception as e:
+            rospy.logerr(f"Failed to query database: {e}")
+            return []
 
 if __name__ == "_main_":
     try:

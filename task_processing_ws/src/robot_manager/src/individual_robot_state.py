@@ -8,6 +8,7 @@ from object_pose_database.msg import DetectObject
 from robot_manager.msg import Task
 from geometry_msgs.msg import Twist, Point, PoseStamped
 from trajectory_control_msgs.msg import PlanningTask
+from robot_manager.srv import UpdateDatabase , UpdateDatabaseRequest
 
 class RobotStateNode:
     def __init__(self, robot_namespace):
@@ -533,7 +534,17 @@ class RobotStateNode:
         """
         Database update logic.
         """
-        
+        rospy.wait_for_service('update_data')
+        try:
+            update_data = rospy.ServiceProxy('update_data', UpdateDatabase)
+            request = UpdateDatabaseRequest()
+            request.objectId = task_object
+            request.status = status
+            request.pose = pose
+            response = update_data(request)
+        except rospy.ServiceException as e:
+            print("Service call failed: %s"%e)
+
 
         return
 

@@ -1,0 +1,7 @@
+# Request
+int32 task_object
+geometry_msgs/PoseStamped pose
+string[] status
+---
+# Response
+string[] message

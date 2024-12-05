@@ -17,6 +17,7 @@ add_service_files(
   GetFreeRobots.srv
   GetTaskCost.srv
   GetState.srv
+  UpdateDatabase.srv
 )
 
 add_message_files(
