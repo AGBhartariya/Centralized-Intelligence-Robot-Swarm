@@ -180,6 +180,7 @@ then
     $(rospack find jackal_3dexplorer)/kill_gazebo_sim
 fi
 
+rosrun jackal_3dexplorer task $NUM_ROBOTS
 ######################################################################################################## 
 
 echo DONE 
