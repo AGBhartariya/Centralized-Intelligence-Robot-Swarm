@@ -6,7 +6,8 @@ from pymongo.errors import OperationFailure
 from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import Int32
 from object_pose_database.msg import DetectObject
-from robot_manager.srv import UpdateDatabase, UpdateDatabaseResponse
+from object_pose_database.srv import UpdateDatabase
+from task_data_services.srv import QueryObjectLocations 
 
 import math
 
@@ -28,6 +29,7 @@ class PoseDatabaseNode:
         self._connect_to_mongo()
 
         self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
+        self.service = rospy.Service("query_loc", QueryObjectLocations, self.q_callback )
         
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
         
@@ -84,8 +86,6 @@ class PoseDatabaseNode:
                 if confidence_y > confidence_z:
                     rospy.loginfo(f"Updating object {data.objectId} in database with new pose and confidence.")
                     self.update_object_pose(obj, pose_dict, confidence_y)
-                    return UpdatePoseResponse(success=True, message="Pose updated successfully.")
-        return UpdatePoseResponse(success=False, message="No matching object found or confidence not improved.")
 
     def find_matching_objects(self, new_position):
             query = {
@@ -168,6 +168,9 @@ class PoseDatabaseNode:
                 return f"Successfully removed {task_object} from location {pose}."
             else:
                 return f"No matching document found for {task_object} at location {pose}."
+
+    def q_callback(self):
+        pass #TODO
 
     def query_free_objects(self, task_object, pose):
 

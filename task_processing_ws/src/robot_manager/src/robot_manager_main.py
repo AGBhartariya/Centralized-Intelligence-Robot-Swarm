@@ -69,7 +69,7 @@ class RobotManager:
         #implement cost function for all scenarios
         rospy.wait_for_service('cost_path')
         try:
-            cost_path = rospy.ServiceProxy('cost_path', GetCostPath)
+            cost_path = rospy.ServiceProxy('/trajectory_control_msgs/cost_path', GetCostPath)
             request = GetCostPathRequest()
             robot_pos = self.getRobotPos(robot_id)
             obj_point=objectlocation.pose.position

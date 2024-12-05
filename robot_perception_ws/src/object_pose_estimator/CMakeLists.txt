@@ -7,11 +7,10 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   geometry_msgs
   object_pose_database
-  robot_manager
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs sensor_msgs geometry_msgs object_pose_database robot_manager
+  CATKIN_DEPENDS rospy std_msgs sensor_msgs geometry_msgs object_pose_database
 )
 
 catkin_install_python(PROGRAMS
