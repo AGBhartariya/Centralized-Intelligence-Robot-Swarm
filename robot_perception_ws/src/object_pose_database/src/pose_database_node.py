@@ -3,7 +3,7 @@
 import rospy
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure
-from geometry_msgs.msg import Pose, PoseStamped
+from geometry_msgs.msg import Pose, PoseStamped, Point
 from std_msgs.msg import Int32
 from object_pose_database.msg import DetectObject
 from object_pose_database.srv import UpdateDatabase
@@ -32,7 +32,7 @@ class PoseDatabaseNode:
         self._connect_to_mongo()
 
         self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
-        self.service = rospy.Service("query_loc", QueryObjectLocations, self.q_callback )
+        self.service = rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
         
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
         
@@ -172,8 +172,8 @@ class PoseDatabaseNode:
             else:
                 return f"No matching document found for {task_object} at location {pose}."
 
-    def query_free_objects(self, task_object):
-
+    def query_free_objects(self, req):
+        task_object=req.objectType
         query = {
             "object_id": task_object,
             "status": "free"
