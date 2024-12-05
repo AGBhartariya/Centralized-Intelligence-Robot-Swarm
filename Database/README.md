@@ -1,1 +1,0 @@
-Directory for storing all the object database and map data.
