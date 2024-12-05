@@ -137,7 +137,7 @@ fi
 
 if [ $LAUNCH_GAZEBO -eq 1 ]; then
     echo "launching gazebo"
-    export ROBOT_INITIAL_POSITION_OPTIONS="x1:=2 y1:=-1 x2:=4 y2:=0 x3:=6 y3:=1"
+    export ROBOT_INITIAL_POSITION_OPTIONS="x1:=2 y1:=-1 x2:=4 y2:=0 x3:=6 y3:=2.5"
 
     open_term GAZEBOMAIN "echo gazebo main; roslaunch jackal_3dmain gazebo.launch world_name:=$WORLD_NAME gui:=$LAUNCH_GAZEBO_MODE; bash" &
     rosrun jackal_3dmain wait_for_gazebo.sh
@@ -166,7 +166,7 @@ for i in `seq 1 $NUM_ROBOTS`; do
 done  
 
 ######################################################################################################## 
-rosrun jackal_3dexplorer task $NUM_ROBOTS
+# rosrun jackal_3dexplorer task $NUM_ROBOTS
 sleep 1
 ########################################################################################################
 
