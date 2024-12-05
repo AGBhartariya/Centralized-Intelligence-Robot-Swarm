@@ -18,8 +18,8 @@
 
   <node 
     pkg="robot_manager" 
-    type="robot_state_manager.py" 
-    name="robot_state_manager" 
+    type="robot_manager_main.py" 
+    name="robot_manager_main" 
     output="screen">
     
     <param name="num_robots" value="$(arg num_robots)"/>
