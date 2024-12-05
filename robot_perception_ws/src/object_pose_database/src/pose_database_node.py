@@ -7,7 +7,7 @@ from geometry_msgs.msg import Pose, PoseStamped
 from std_msgs.msg import Int32
 from object_pose_database.msg import DetectObject
 from object_pose_database.srv import UpdateDatabase
-from task_data_services.srv import QueryObjectLocations 
+from object_pose_database.srv import QueryObjectLocations 
 from sklearn.cluster import KMeans
 from random import sample
 import numpy as np

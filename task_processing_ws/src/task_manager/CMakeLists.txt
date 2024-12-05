@@ -5,11 +5,11 @@ find_package(catkin REQUIRED COMPONENTS
   rospy
   std_msgs
   robot_manager
-  task_data_services
+  object_pose_database
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs message_runtime robot_manager task_data_services
+  CATKIN_DEPENDS rospy std_msgs message_runtime robot_manager object_pose_database
 )
 
 catkin_install_python(PROGRAMS

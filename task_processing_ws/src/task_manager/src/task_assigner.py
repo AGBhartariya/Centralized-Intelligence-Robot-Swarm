@@ -3,7 +3,7 @@
 import rospy
 from robot_manager.msg import Task
 from robot_manager.srv import GetFreeRobots, GetTaskCost
-from task_data_services.srv import QueryObjectLocations, QueryObjectLocationsRequest
+from object_pose_database.srv import QueryObjectLocations, QueryObjectLocationsRequest
 from geometry_msgs.msg import PoseStamped
 import heapq
 import numpy as np

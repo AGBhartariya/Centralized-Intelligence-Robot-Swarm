@@ -6,7 +6,6 @@ find_package(catkin REQUIRED COMPONENTS
   std_msgs
   geometry_msgs
   message_generation
-  task_data_services
 )
 
 add_service_files(
@@ -14,6 +13,7 @@ add_service_files(
   GetObjectPose.srv
   UpdatePose.srv
   UpdateDatabase.srv
+  QueryObjectLocations.srv
 )
 
 add_message_files(
@@ -29,7 +29,7 @@ generate_messages(
 
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs geometry_msgs message_runtime task_data_services
+  CATKIN_DEPENDS rospy std_msgs geometry_msgs message_runtime
 )
 
 include_directories(
