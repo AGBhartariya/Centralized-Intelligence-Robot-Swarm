@@ -112,7 +112,7 @@ class RobotStateNode:
             )
             self.current_object_pose = pose
             (trans, rot) = self.tf_listener.lookupTransform(
-                        "map", "base_link", rospy.Time(0)
+                        "map", f"{self.namespace}/base_link", rospy.Time(0)
                         )
             self.current_object_location.pose.position.x = trans[0]
             self.current_object_location.pose.position.y = trans[1]
@@ -435,7 +435,7 @@ class RobotStateNode:
                 # Check for a free object of the required type
                 if self.acquired_object:
                     (trans, rot) = self.tf_listener.lookupTransform(
-                        "map", "base_link", rospy.Time(0)
+                        "map", f"{self.namespace}/base_link", rospy.Time(0)
                     )
                     self.current_object_location = PoseStamped()
                     self.current_object_location.header.frame_id = "map"
@@ -506,7 +506,7 @@ class RobotStateNode:
     def is_within_tolerance(self, location: PoseStamped):
         try:
             (trans, _) = self.tf_listener.lookupTransform(
-                "map", "base_link", rospy.Time(0)
+                "map", f"{self.namespace}/base_link", rospy.Time(0)
             )
             distance = math.sqrt(
                 (location.pose.position.x - trans[0]) ** 2
@@ -548,7 +548,7 @@ class RobotStateNode:
 
     def leave_object_at_current_location(self):
         (trans, rot) = self.tf_listener.lookupTransform(
-            "map", "base_link", rospy.Time(0)
+            "map", f"{self.namespace}/base_link", rospy.Time(0)
         )
         self.current_object_location = PoseStamped()
         self.current_object_location.header.frame_id = "map"
