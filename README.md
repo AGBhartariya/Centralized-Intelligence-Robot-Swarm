@@ -193,8 +193,39 @@ alt="TRADR system" height="150" border="1" />
 alt="TRADR system" height="150" border="1" /> <img src="images/montelibretti-patrolling.png" alt="TRADR system" height="150" border="1" />
 </p>
 
+----
+### Robot Perception Node
+This node is responsible for object detection and database updates based on data from a depth camera integrated with Jackal robots. It utilizes YOLO for object detection and records the following:
+
+- **Object ID**: A unique identifier for each detected object.
+- **Object Pose**: The 3D pose (position and orientation) of the detected object.
+- **Robot Pose**: The position and orientation of the robot at the time of detection.
+
+Detected objects and their associated metadata are updated in a shared database to support further multi-robot coordination and planning.
+
+#### Features:
+- Integrates YOLO for real-time object detection.
+- Updates a centralized database with object and robot pose information.
+- Provides detailed object metadata for use in task allocation and navigation.
 
 ----
+
+### Task Processing Node
+This node is responsible for task assignment and prioritization among the robots in the system. Tasks are assigned based on their priority and the following criteria:
+
+- **Priority Order**: Tasks are classified into five levels, with higher-priority tasks being assigned first.
+- **Occupancy**: The current availability of robots to take on tasks.
+- **Cost**: The cost of assigning a task to a robot, determined by factors such as distance and energy consumption.
+
+The node ensures efficient and dynamic task allocation, assigning tasks to robots with the lowest cost while respecting priority levels.
+
+#### Features:
+- Dynamically assigns tasks based on priority and robot cost.
+- Implements a cost-effective task allocation strategy.
+- Supports scalable task distribution for large multi-robot systems.
+
+---
+
 ## License
 
 The **3DMR** stack contains different ROS packages. Each package comes with its license. Where nothing is specified, a [GPLv3 license](./license/license-gpl.txt) applies to the software. 
