@@ -166,6 +166,9 @@ for i in `seq 1 $NUM_ROBOTS`; do
 done  
 
 ######################################################################################################## 
+rosrun jackal_3dexplorer task $NUM_ROBOTS
+sleep 1
+########################################################################################################
 
 if [ $LAUNCH_EXPLORATION_AUTO -eq 1 ] 
 then
@@ -180,7 +183,6 @@ then
     $(rospack find jackal_3dexplorer)/kill_gazebo_sim
 fi
 
-rosrun jackal_3dexplorer task $NUM_ROBOTS
 ######################################################################################################## 
 
 echo DONE 

@@ -39,7 +39,7 @@ class TaskPublisher:
                 x1 = 1
 
             task_type = x1
-            x2 = input("Enter task object/target (integer id): ")
+            x2 = int(input("Enter task object/target (integer id): "))
 
             task.description = [x1, x2]
             x3 = PoseStamped()
