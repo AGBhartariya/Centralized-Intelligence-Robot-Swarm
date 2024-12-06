@@ -33,7 +33,7 @@ for ((i=1; i<=N; i++)); do
   # sleep 1
 done
 
-roslaunch robot_manager robot_manager.launch num_robots:=$n
+roslaunch robot_manager robot_manager.launch num_robots:=$N
 roslaunch task_manager task.launch
 
 # Optionally wait for all background processes to complete

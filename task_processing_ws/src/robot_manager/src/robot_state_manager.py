@@ -16,7 +16,7 @@ from trajectory_control_msgs.srv import GetCostPath, GetCostPathRequest
 class RobotStateManager:
     def __init__(self):
         # Initialize the node
-        rospy.init_node("robot_state_manager", anonymous=True)
+        rospy.init_node("robot_state_manager")
 
         # Get number of robots from ROS parameter
         self.num_robots = rospy.get_param("~num_robots", 1)
