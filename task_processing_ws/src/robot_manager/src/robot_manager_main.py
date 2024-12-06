@@ -12,7 +12,7 @@ class RobotManager:
         rospy.init_node("robot_manager")
 
         # Initialize robots by namespace (e.g., "robot_1", "robot_2", ...)
-        self.numRobots = rospy.get_param("~num_robots", 3)  # Default to 3 robots
+        self.numRobots = rospy.get_param("~num_robots", 1)  # Default to 3 robots
         self.robots = [f"ugv{i+1}" for i in range(self.numRobots)]
 
         self.free_robots = []
