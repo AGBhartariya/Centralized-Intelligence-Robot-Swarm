@@ -191,7 +191,7 @@ def assign_tasks():
                 task = generateTaskMsg(task, assigned_location)
                 task_pub = rospy.Publisher(f"/{robot_id}/start_task", Task, queue_size=1)
                 task_pub.publish(task)
-                rospy.loginfo(f"Published task on /{robot_id}/start_task")
+                rospy.loginfo(f"Published task {task} on /{robot_id}/start_task")
             else:
                 rospy.loginfo("No valid assignment found for some tasks.")
 

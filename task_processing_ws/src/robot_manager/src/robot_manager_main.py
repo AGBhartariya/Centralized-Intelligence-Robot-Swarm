@@ -69,7 +69,7 @@ class RobotManager:
         #implement cost function for all scenarios
         rospy.wait_for_service('cost_path')
         try:
-            cost_path = rospy.ServiceProxy('/trajectory_control_msgs/cost_path', GetCostPath)
+            cost_path = rospy.ServiceProxy('/cost_path', GetCostPath)
             request = GetCostPathRequest()
             robot_pos = self.getRobotPos(robot_id)
             task_point=[]
@@ -102,7 +102,7 @@ class RobotManager:
 
                     distance = ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
                     total_cost += distance
-            rospy.loginfo("Calculated net cost {total_cost}")
+            rospy.loginfo(f"Calculated net cost {total_cost}")
             return total_cost
 
         except rospy.ServiceException as e:
