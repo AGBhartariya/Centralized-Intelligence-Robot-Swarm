@@ -6,6 +6,38 @@
 
 echo "usage: ./${0##*/} <robot-id> <enable-multi-robot-traversability> <enable-exploration-agent>  <enable-exploration-pcl-filter>"
 
+# Enhanced open_term function with retry logic
+open_term_with_retry() {
+    local name="$1"
+    local command="$2"
+    local max_attempts=5
+    local attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        # Try to open the terminal
+        xterm $XTERM_OPTIONS -T "$name" -e bash -c "$command" &
+        local xterm_pid=$!
+        
+        # Give the terminal a moment to start
+        sleep 2
+        
+        # Check if the process is still running 
+        if kill -0 "$xterm_pid" 2>/dev/null; then
+            echo "Successfully opened terminal for $name on attempt $attempt"
+            return 0
+        fi
+        
+        # If not successful, wait and retry
+        echo "Failed to open terminal for $name (attempt $attempt/$max_attempts)"
+        sleep 2
+        
+        ((attempt++))
+    done
+    
+    # If all attempts fail, print an error
+    echo "ERROR: Could not open terminal for $name after $max_attempts attempts"
+    return 1
+}
 
 ROBOT_ID=$1
 ROBOT_NAME="ugv$ROBOT_ID"
@@ -79,13 +111,8 @@ if [[ -n "$ENABLE_EXPL_POINTCLOUD_FILTER_INPUT" ]]; then
 fi
 echo "ENABLE_EXPL_POINTCLOUD_FILTER: $ENABLE_EXPL_POINTCLOUD_FILTER"
 
-
 ########################################################################################################
 
-#PATH_PLANNER_DIR=$(rospack find path_planner)
-#$PATH_PLANNER_DIR/scripts/sim_launcher_ugv $ROBOT_ID
-
-#open_term "ugv$ROBOT_ID_path_planner_term" "echo path planner ugv$ROBOT_ID; rosrun path_planner sim_launcher_ugv $ROBOT_ID $ENABLE_MULTI_ROBOT_COORDINATION; bash " &
 rosrun jackal_3dnav sim_launcher_ugv $ROBOT_ID $ENABLE_MULTI_ROBOT_COORDINATION
 sleep 8
 
@@ -94,16 +121,15 @@ sleep 8
 if [ $ENABLE_EXPL_AGENT -eq 1 ]; then
 
     if [ $ENABLE_EXPL_POINTCLOUD_FILTER -eq 1 ]; then
-        open_term "ugv$ROBOT_ID"expl_pointcloud_filter "echo expl_pointcloud_filter ugv$ROBOT_ID;  roslaunch expl_pointcloud_filter sim_expl_pointcloud_filter_jackal_ugv.launch robot_name:=$ROBOT_NAME; bash" &
+        open_term_with_retry "ugv$ROBOT_ID"expl_pointcloud_filter "echo expl_pointcloud_filter ugv$ROBOT_ID;  roslaunch expl_pointcloud_filter sim_expl_pointcloud_filter_jackal_ugv.launch robot_name:=$ROBOT_NAME; bash" &
         export EXPL_CLOUD_OPTION="robot_point_cloud_base_topic:=expl_point_cloud verticalFov:=180.0 sensor_max_range:=3.0 expl_step:=3.0"    
     fi
 
     if [ $ENABLE_LOGGING_EXPL_AGENT -eq 1 ]; then
             echo "jackal_expl ugv$ROBOT_ID"
-            open_term "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY number_of_robots:=$NUM_ROBOTS &> $FILE_LOG_EXPLORATION_AGENT; bash" &
+            open_term_with_retry "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY number_of_robots:=$NUM_ROBOTS &> $FILE_LOG_EXPLORATION_AGENT; bash" &
     else
             echo "jackal_expl ugv$ROBOT_ID"
-            open_term "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY number_of_robots:=$NUM_ROBOTS ; bash" &
+            open_term_with_retry "ugv$ROBOT_ID"expl_planner "echo jackal_expl_planner ugv$ROBOT_ID; roslaunch --wait jackal_3dexplorer sim_expl_planner_ugv2.launch robot_name:=$ROBOT_NAME $EXPL_CLOUD_OPTION battery:=$ENABLE_BATTERY number_of_robots:=$NUM_ROBOTS ; bash" &
     fi
 fi
-
