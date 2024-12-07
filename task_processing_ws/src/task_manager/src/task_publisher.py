@@ -6,9 +6,8 @@ import heapq
 
 class TaskPublisher:
     def __init__(self):
-        self.pub = rospy.Publisher("tasks", Task, queue_size=10)
+        self.pub = rospy.Publisher("task_topic", Task, queue_size=10)
         rospy.init_node("task_publisher", anonymous=True)
-        self.task_heap = []  # Min-heap to manage tasks by priority
 
     def get_pose(self, prompt):
         pose = PoseStamped()
@@ -65,23 +64,15 @@ class TaskPublisher:
         while not rospy.is_shutdown():
             print("--- Task Creation Menu ---")
             print("1: Create a new task")
-            print("2: Publish next task from the heap")
-            print("3: Exit")
+            print("2: Exit")
 
             choice = input("Enter your choice: ")
             if choice == "1":
                 new_task = self.create_task()
-                heapq.heappush(self.task_heap, (new_task.priority, new_task))
+                self.pub.publish(new_task)
+                # heapq.heappush(self.task_heap, (new_task.priority, new_task))
 
             elif choice == "2":
-                if self.task_heap:
-                    _, task_to_publish = heapq.heappop(self.task_heap)
-                    rospy.loginfo(f"Publishing task: {task_to_publish}")
-                    self.pub.publish(task_to_publish)
-                else:
-                    rospy.loginfo("No tasks in the heap to publish.")
-
-            elif choice == "3":
                 rospy.loginfo("Exiting task publisher.")
                 break
 
@@ -92,6 +83,7 @@ class TaskPublisher:
 
 if __name__ == "__main__":
     try:
+        rospy.loginfo("Started Task assignment node")
         task_pub = TaskPublisher()
         task_pub.task_publisher()
     except rospy.ROSInterruptException:
