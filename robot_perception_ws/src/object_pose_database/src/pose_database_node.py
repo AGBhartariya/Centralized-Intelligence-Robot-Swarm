@@ -14,6 +14,7 @@ import numpy as np
 from collections import defaultdict
 # from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
 import math
+from object_pose_database.srv import GetObjectPose
 
 class PoseDatabaseNode:
     def __init__(self):
@@ -34,7 +35,9 @@ class PoseDatabaseNode:
 
         self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
         self.service = rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
+        self.service = rospy.Service("robot_obj_pose", GetObjectPose, self.query_objects_by_robot_location_and_id )
         
+
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
         
         n = rospy.get_param("~no_of_robots", "4")
@@ -237,7 +240,9 @@ class PoseDatabaseNode:
         rospy.loginfo(f"Returning {len(response_points)} sampled points.")
         return ClusterAndSampleResponse(success=True, points=response_points, cluster_ids=cluster_ids)
     
-    def query_objects_by_robot_location_and_id(self, robot_location, object_id):
+    def query_objects_by_robot_location_and_id(self, req):
+        robot_location=req.robot_location
+        object_id= req.objectId
         # Define the query
         query = {
             "robot_location": {
@@ -256,7 +261,7 @@ class PoseDatabaseNode:
             positions = [result["position"] for result in results]
             
             rospy.loginfo(f"Found {len(positions)} objects detected by robot at location {robot_location}.")
-            return positions
+            return positions[0]
 
         except Exception as e:
             rospy.logerr(f"Failed to query database: {e}")
