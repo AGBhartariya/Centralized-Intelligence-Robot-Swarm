@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Author: Luigi Freda 
 
+# Modified to add retry logic for open_term commands
 
 echo "usage: ./${0##*/} <world-name> <num-robots> <enable-muti-robot-traversability> <max-sim-time>"
 
@@ -8,6 +9,36 @@ echo "usage: ./${0##*/} <world-name> <num-robots> <enable-muti-robot-traversabil
 # 1) this script is designed just for testing the exploration nodes; no SLAM nodes are called; SLAM is assumed to be faked by a proper V-REP environment
 # 2) you can kill all the spawned terminals together by right clicking on the X icon on the left bar and selecting "Quit"
 
+# Retry function for open_term to ensure terminal is opened
+open_term_with_retry() {
+    local MAX_ATTEMPTS=5
+    local ATTEMPT=1
+    local SESSION_NAME=$1
+    local COMMAND=$2
+
+    while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+        # Try to open the term
+        open_term "$SESSION_NAME" "$COMMAND"
+        
+        # Check if the screen session exists
+        screen -list | grep -q "$SESSION_NAME"
+        
+        if [ $? -eq 0 ]; then
+            # Session found, exit the retry loop
+            echo "Successfully opened $SESSION_NAME"
+            return 0
+        fi
+        
+        # Wait before retrying
+        sleep 2
+        
+        ((ATTEMPT++))
+    done
+    
+    # If we reach here, all attempts failed
+    echo "ERROR: Failed to open terminal session $SESSION_NAME after $MAX_ATTEMPTS attempts"
+    return 1
+}
 
 #TODO: import all the other options which are present in the script sim_launcher_patrolling
 
@@ -139,22 +170,22 @@ if [ $LAUNCH_GAZEBO -eq 1 ]; then
     echo "launching gazebo"
     export ROBOT_INITIAL_POSITION_OPTIONS="x1:=2 y1:=-1 x2:=4 y2:=0 x3:=6 y3:=2.5"
 
-    open_term GAZEBOMAIN "echo gazebo main; roslaunch jackal_3dmain gazebo.launch world_name:=$WORLD_NAME gui:=$LAUNCH_GAZEBO_MODE; bash" &
+    open_term_with_retry GAZEBOMAIN "echo gazebo main; roslaunch jackal_3dmain gazebo.launch world_name:=$WORLD_NAME gui:=$LAUNCH_GAZEBO_MODE; bash" &
     rosrun jackal_3dmain wait_for_gazebo.sh
     sleep 10    
     
     echo "spawning gazebo jackals"
-    open_term GAZEBOMODELS "echo jackal_ugvs; roslaunch --wait jackal_3dmain jackal_ugvs.launch $ROBOT_INITIAL_POSITION_OPTIONS OS0:=true imuRate:=360 organize_cloud:=$ENABLE_ORGANIZED_POINT_CLOUD num_robots:=$NUM_ROBOTS use_rviz:=false; bash" &
+    open_term_with_retry GAZEBOMODELS "echo jackal_ugvs; roslaunch --wait jackal_3dmain jackal_ugvs.launch $ROBOT_INITIAL_POSITION_OPTIONS OS0:=true imuRate:=360 organize_cloud:=$ENABLE_ORGANIZED_POINT_CLOUD num_robots:=$NUM_ROBOTS use_rviz:=false; bash" &
     sleep 5
 fi
 
 # Connect map to odom 
-open_term TF_STATICS "echo tf_statics; roslaunch --wait jackal_3dnav tf_statics.launch; bash" & 
+open_term_with_retry TF_STATICS "echo tf_statics; roslaunch --wait jackal_3dnav tf_statics.launch; bash" & 
     
 ########################################################################################################
 #- RVIZ
 
-open_term RVIZ "echo rviz; roslaunch jackal_3dnav rviz_sim_path_planning.launch; bash" &
+open_term_with_retry RVIZ "echo rviz; roslaunch jackal_3dnav rviz_sim_path_planning.launch; bash" &
 
 sleep 1
 
@@ -186,4 +217,3 @@ fi
 ######################################################################################################## 
 
 echo DONE 
-
