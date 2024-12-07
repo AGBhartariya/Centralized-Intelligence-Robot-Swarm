@@ -179,7 +179,7 @@ def assign_tasks():
             continue
 
         # Solve the assignment problem
-        rospy.loginfo(f"Task matrix {cost_matrix} formed")
+        rospy.loginfo(f"Task cost matrix formed \n {cost_matrix}")
         task_indices, robot_indices = linear_sum_assignment(cost_matrix)
 
         # Assign tasks to robots

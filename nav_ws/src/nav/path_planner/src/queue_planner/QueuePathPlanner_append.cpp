@@ -177,7 +177,7 @@ void QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTas
 
     // create a new task object
     // std::vector<TaskSegment*> task;
-    TaskPtr task(new Task);
+    
     task->type = (TaskType)task_msg.type;
 
     // for each task-segment contained in the task
@@ -198,12 +198,9 @@ void QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTas
         segment->segment_task.waypoints.push_back(waypoints[i]);
         segment->segment_task.waypoints.push_back(waypoints[i + 1]);
 
-        // start planning thread
-        // segment->thread=boost::thread(&QueuePathPlanner::pathPlanningCallback,segment);
-        segment->thread = boost::thread(boost::bind(&QueuePathPlanner::pathPlanningCallback, this, segment, task)); /// < START NEW THREAD
+        pathPlanningCallback(segment);
 
         // add segment to the task
-        task->push_back(segment);
         path_list.push_back(segment->path);
     }
     return;
@@ -219,7 +216,12 @@ bool QueuePathPlanner::getCostPath(trajectory_control_msgs::GetCostPath::Request
         ROS_WARN("No paths generated for the task.");
         return false; // Service call fails
     }
-    for (const auto &path : paths)
+
+    // Clear any existing paths in the response
+    res.path_list.clear();
+
+    // Explicitly copy each path to the response
+    for (const auto& path : paths)
     {
         res.path_list.push_back(path);
     }

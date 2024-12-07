@@ -92,7 +92,7 @@ class RobotManager:
             request.task.waypoints = all_points
             request.task.segment_count=len(all_points) -1
             response = cost_path(request)
-            rospy.loginfo(f"Computed paths {response}")
+            # rospy.loginfo(f"Computed paths {response}")
             total_cost=0
             for path in response.path_list:
                 poses = path.poses
