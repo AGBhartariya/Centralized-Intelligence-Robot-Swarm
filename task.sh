@@ -35,7 +35,7 @@ done
 
 # roslaunch object_pose_database database.launch no_of_robots:=$N
 roslaunch robot_manager robot_manager.launch num_robots:=$N
-# roslaunch task_manager task.launch
+roslaunch task_manager task.launch
 
 # Optionally wait for all background processes to complete
 wait
