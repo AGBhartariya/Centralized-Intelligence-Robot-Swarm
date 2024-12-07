@@ -12,7 +12,7 @@ from sklearn.cluster import KMeans
 from random import sample
 import numpy as np
 from collections import defaultdict
-# from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
+from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
 import math
 from object_pose_database.srv import GetObjectPose
 
@@ -36,6 +36,7 @@ class PoseDatabaseNode:
         self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
         self.service = rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
         self.service = rospy.Service("getObjectPose", GetObjectPose, self.query_objects_by_robot_location_and_id )
+        self.service = rospy.Service("clustering",ClusterAndSample, self.cluster_and_sample_callback )
         
 
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
