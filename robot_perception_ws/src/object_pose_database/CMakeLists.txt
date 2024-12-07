@@ -14,6 +14,7 @@ add_service_files(
   UpdatePose.srv
   UpdateDatabase.srv
   QueryObjectLocations.srv
+  ClusterAndSample.srv
 )
 
 add_message_files(

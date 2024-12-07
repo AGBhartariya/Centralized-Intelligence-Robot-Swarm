@@ -1,0 +1,8 @@
+#Request
+int32 no_of_points-per_cluster
+---
+#Response
+bool success
+string message
+int32 [] points  
+int32 [] cluster_ids   
