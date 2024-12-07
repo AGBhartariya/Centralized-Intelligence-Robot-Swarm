@@ -22,7 +22,7 @@ class ObjectDetectorPoseEstimator:
 
         # YOLO model setup
         self.model = YOLO("yolo11n.pt")  # Load pretrained YOLO model
-        self.model.to("cuda")  # Use GPU if available
+        # self.model.to("cuda")  # Use GPU if available
 
         # Utilities
         self.bridge = CvBridge()

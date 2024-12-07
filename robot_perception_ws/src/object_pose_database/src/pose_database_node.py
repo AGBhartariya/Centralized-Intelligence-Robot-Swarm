@@ -242,16 +242,26 @@ class PoseDatabaseNode:
         return ClusterAndSampleResponse(success=True, points=response_points, cluster_ids=cluster_ids)
     
     def query_objects_by_robot_location_and_id(self, req):
+
+        
         robot_location=req.robot_location
         object_id= req.objectId
+        
+        
+        pose = req.robot_location.pose
+        robot_location = {
+            "x": pose.position.x,
+            "y": pose.position.y,
+            "z": pose.position.z
+        }
+        object_id = req.objectId
+
         # Define the query
         query = {
-            "robot_location": {
-                "rx": {"$eq": robot_location["x"]},
-                "ry": {"$eq": robot_location["y"]},
-                "rz": {"$eq": robot_location["z"]},
-            },
-            "object_id": object_id
+            "robot_location.x": {"$eq": robot_location["x"]},
+            "robot_location.y": {"$eq": robot_location["y"]},
+            "robot_location.z": {"$eq": robot_location["z"]},
+            "object_id": {"$eq": object_id}
         }
 
         try:
