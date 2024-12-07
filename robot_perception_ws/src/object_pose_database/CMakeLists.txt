@@ -32,6 +32,11 @@ catkin_package(
   CATKIN_DEPENDS rospy std_msgs geometry_msgs message_runtime
 )
 
+install(
+DIRECTORY launch 
+DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
+
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )

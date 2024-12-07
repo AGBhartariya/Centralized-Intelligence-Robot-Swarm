@@ -95,7 +95,6 @@ def assign_tasks():
 
         # Check if enough time has elapsed since the last execution
         if current_time - last_execution_time < k_seconds:
-            rospy.loginfo(f"DEBUG {k_seconds}")
             rospy.sleep(1)
             continue
         
@@ -149,7 +148,7 @@ def assign_tasks():
                 data = task.description
                 task_locations = task.locations
                 # Get metadata for the task
-                object_locations_client = rospy.ServiceProxy("/task_data_service/QueryTaskData", QueryObjectLocations)
+                object_locations_client = rospy.ServiceProxy("query_loc", QueryObjectLocations)
                 request=QueryObjectLocationsRequest()
                 request.objectType=data[1]
                 object_locations = object_locations_client(request).locations
