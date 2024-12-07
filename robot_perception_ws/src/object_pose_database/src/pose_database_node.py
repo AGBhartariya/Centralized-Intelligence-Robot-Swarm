@@ -12,7 +12,7 @@ from sklearn.cluster import KMeans
 from random import sample
 import numpy as np
 from collections import defaultdict
-from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
+# from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
 import math
 
 class PoseDatabaseNode:
