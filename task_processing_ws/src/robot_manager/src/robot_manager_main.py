@@ -102,6 +102,7 @@ class RobotManager:
 
                     distance = ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
                     total_cost += distance
+            rospy.loginfo("Calculated net cost {total_cost}")
             return total_cost
 
         except rospy.ServiceException as e:

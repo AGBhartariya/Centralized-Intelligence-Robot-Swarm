@@ -179,6 +179,7 @@ def assign_tasks():
             continue
 
         # Solve the assignment problem
+        rospy.loginfo(f"Task matrix {cost_matrix} formed")
         task_indices, robot_indices = linear_sum_assignment(cost_matrix)
 
         # Assign tasks to robots
@@ -188,8 +189,9 @@ def assign_tasks():
                 robot_id = free_robot_ids[robot_idx]
                 assigned_location = task_object_locations[task_idx][robot_idx]
                 task = generateTaskMsg(task, assigned_location)
-                task_pub = rospy.Publisher(f"/ugv{robot_id}/start_task", Task, queue_size=1)
+                task_pub = rospy.Publisher(f"/{robot_id}/start_task", Task, queue_size=1)
                 task_pub.publish(task)
+                rospy.loginfo(f"Published task on /{robot_id}/start_task")
             else:
                 rospy.loginfo("No valid assignment found for some tasks.")
 

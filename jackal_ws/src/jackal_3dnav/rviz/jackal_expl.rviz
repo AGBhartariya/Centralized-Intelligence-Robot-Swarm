@@ -8,7 +8,7 @@ Panels:
         - /RobotModel1
         - /RobotModel2
       Splitter Ratio: 0.824867308139801
-    Tree Height: 418
+    Tree Height: 564
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
@@ -703,7 +703,7 @@ Visualization Manager:
       Color: 252; 233; 79
       Color Transformer: FlatColor
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -718,7 +718,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: false
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -1068,18 +1068,18 @@ Visualization Manager:
       Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv2/interactive_marker - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv2/marker_controller/update
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 85; 0; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1098,12 +1098,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv2/robot_path_draw
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1122,12 +1122,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv2/robot_local_path_draw
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1146,16 +1146,16 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv2/planner/tasks/path
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv2/multi-wp - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv2/planner/waypoints/server/update
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /ugv2/path_planner/visited_nodes
@@ -1166,18 +1166,18 @@ Visualization Manager:
       Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv3/multi-wp - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv3/planner/waypoints/server/update
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 0; 0; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1196,12 +1196,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv3/robot_path_draw
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1220,12 +1220,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv3/planner/tasks/path
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1244,54 +1244,54 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv3/robot_local_path_draw
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /edges_markers
       Name: patrolling - /edges_makers  - Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /patrolling_nodes_markers
       Name: patrolling - /patrolling_node_makers - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /patrolling_robot_boundaries_markers
       Name: patrolling - /patrolling_robot_boundaries_makers - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv1/patrolling_marker_controller - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv1/patrolling_marker_controller/update
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv2/patrolling_marker_controller - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv2/patrolling_marker_controller/update
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1310,7 +1310,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv1/path_to_avoid
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
@@ -1339,7 +1339,7 @@ Visualization Manager:
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1358,12 +1358,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv2/path_to_avoid
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1382,7 +1382,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv3/path_to_avoid
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Marker
       Enabled: false
       Marker Topic: /robot_trajectories_marker
@@ -1392,13 +1392,13 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /planning/messages
       Name: /planning/messages - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -1411,7 +1411,7 @@ Visualization Manager:
       Color: 255; 255; 0
       Color Transformer: FlatColor
       Decay Time: 3
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -1426,7 +1426,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -1439,7 +1439,7 @@ Visualization Manager:
       Color: 255; 255; 0
       Color Transformer: FlatColor
       Decay Time: 3
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -1454,7 +1454,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -1467,7 +1467,7 @@ Visualization Manager:
       Color: 255; 255; 0
       Color Transformer: FlatColor
       Decay Time: 3
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -1482,12 +1482,12 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 85; 0; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1506,12 +1506,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv4/robot_path_draw
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 255; 0; 255
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1530,12 +1530,12 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv4/robot_local_path_draw
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Buffer Length: 1
       Class: rviz/Path
       Color: 25; 255; 0
-      Enabled: true
+      Enabled: false
       Head Diameter: 0.30000001192092896
       Head Length: 0.20000000298023224
       Length: 0.30000001192092896
@@ -1554,7 +1554,7 @@ Visualization Manager:
       Shaft Length: 0.10000000149011612
       Topic: /ugv4/planner/tasks/path
       Unreliable: false
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Autocompute Value Bounds:
@@ -1641,30 +1641,30 @@ Visualization Manager:
       Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv4/patrolling_maker_controller - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv4/patrolling_marker_controller/update
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv3/patrolling_marker_controller - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv3/patrolling_marker_controller/update
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /expl_planner_ugv1/octomap_occupied
       Name: /ugv1/expl_planner/octomap_occupied - MarkerArray
       Namespaces:
         {}
       Queue Size: 1
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /expl_planner_ugv1/octomap_free
@@ -1682,13 +1682,13 @@ Visualization Manager:
       Queue Size: 1
       Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv1/expl_planner/inspection_path
       Name: /ugv1/expl_planner/inspection_path - Marker
       Namespaces:
         {}
       Queue Size: 10000
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
       Enabled: true
@@ -1699,13 +1699,13 @@ Visualization Manager:
       Update Topic: /ugv1/expl_marker_controller/update
       Value: true
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv1/expl_planner/exploration_nodes
       Name: /ugv1/expl_planner/exploration_nodes - Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /ugv1/expl_planner/exploration_path
@@ -1723,21 +1723,21 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv1/expl_planner/frontier_clusters
       Name: /ugv1/expl_planner/frontier_clusters - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv1/expl_planner/back_nav_tree
       Name: /ugv1/expl_planner/back_nav_tree - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /expl_planner_ugv2/octomap_occupied
@@ -1763,13 +1763,13 @@ Visualization Manager:
       Queue Size: 1
       Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv2/expl_planner/inspection_path
       Name: /ugv2/expl_planner/inspection_path - Marker
       Namespaces:
         {}
       Queue Size: 10000
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
       Enabled: true
@@ -1780,13 +1780,13 @@ Visualization Manager:
       Update Topic: /ugv2/expl_marker_controller/update
       Value: true
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv2/expl_planner/exploration_nodes
       Name: /ugv2/expl_planner/exploration_nodes - Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /ugv2/expl_planner/exploration_path
@@ -1804,21 +1804,21 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv2/expl_planner/frontier_clusters
       Name: /ugv2/expl_planner/frontier_clusters - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv2/expl_planner/back_nav_tree
       Name: /ugv2/expl_planner/back_nav_tree - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /expl_planner_ugv3/octomap_occupied
@@ -1844,30 +1844,30 @@ Visualization Manager:
       Queue Size: 1
       Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv3/expl_planner/inspection_path
       Name: /ugv3/expl_planner/inspection_path - Marker
       Namespaces:
         {}
       Queue Size: 10000
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv3/expl_marker_controller - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv3/expl_marker_controller/update
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv3/expl_planner/exploration_nodes
       Name: /ugv3/expl_planner/exploration_nodes - Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /ugv3/expl_planner/exploration_path
@@ -1885,21 +1885,21 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv3/expl_planner/frontier_clusters
       Name: /ugv3/expl_planner/frontier_clusters - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv3/expl_planner/back_nav_tree
       Name: /ugv3/expl_planner/back_nav_tree - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /expl_planner_ugv4/octomap_occupied
@@ -1925,30 +1925,30 @@ Visualization Manager:
       Queue Size: 1
       Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv4/expl_planner/inspection_path
       Name: /ugv4/expl_planner/inspection_path - Marker
       Namespaces:
         {}
       Queue Size: 10000
-      Value: true
+      Value: false
     - Class: rviz/InteractiveMarkers
       Enable Transparency: true
-      Enabled: true
+      Enabled: false
       Name: /ugv4/expl_marker_controller - InteractiveMarkers
       Show Axes: false
       Show Descriptions: true
       Show Visual Aids: false
       Update Topic: /ugv4/expl_marker_controller/update
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv4/expl_planner/exploration_nodes
       Name: /ugv4/expl_planner/exploration_nodes - Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
       Enabled: false
       Marker Topic: /ugv4/expl_planner/exploration_path
@@ -1966,21 +1966,21 @@ Visualization Manager:
       Queue Size: 100
       Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv4/expl_planner/frontier_clusters
       Name: /ugv4/expl_planner/frontier_clusters - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/MarkerArray
-      Enabled: true
+      Enabled: false
       Marker Topic: /ugv4/expl_planner/back_nav_tree
       Name: /ugv4/expl_planner/back_nav_tree - MarkerArray
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Class: rviz/Image
       Enabled: true
       Image Topic: /ugv1/camera/image_raw
@@ -1994,7 +1994,7 @@ Visualization Manager:
       Unreliable: false
       Value: true
     - Class: rviz/Image
-      Enabled: true
+      Enabled: false
       Image Topic: /ugv2/camera/image_raw
       Max Value: 1
       Median window: 5
@@ -2004,22 +2004,22 @@ Visualization Manager:
       Queue Size: 1
       Transport Hint: compressed
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /optim_local_planner_node_ugv1/teb_markers
       Name: /ugv1/teb_markers- Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Alpha: 1
       Arrow Length: 0.30000001192092896
       Axes Length: 0.30000001192092896
       Axes Radius: 0.009999999776482582
       Class: rviz/PoseArray
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Head Length: 0.07000000029802322
       Head Radius: 0.029999999329447746
       Name: /ugv1/teb_poses - PoseArray
@@ -2029,22 +2029,22 @@ Visualization Manager:
       Shape: Arrow (Flat)
       Topic: /optim_local_planner_node_ugv1/teb_poses
       Unreliable: false
-      Value: true
+      Value: false
     - Class: rviz/Marker
-      Enabled: true
+      Enabled: false
       Marker Topic: /optim_local_planner_node_ugv2/teb_markers
       Name: /ugv2/teb_markers- Marker
       Namespaces:
         {}
       Queue Size: 100
-      Value: true
+      Value: false
     - Alpha: 1
       Arrow Length: 0.30000001192092896
       Axes Length: 0.30000001192092896
       Axes Radius: 0.009999999776482582
       Class: rviz/PoseArray
       Color: 255; 25; 0
-      Enabled: true
+      Enabled: false
       Head Length: 0.07000000029802322
       Head Radius: 0.029999999329447746
       Name: /ugv2/teb_poses - PoseArray
@@ -2054,7 +2054,7 @@ Visualization Manager:
       Shape: Arrow (Flat)
       Topic: /optim_local_planner_node_ugv2/teb_poses
       Unreliable: false
-      Value: true
+      Value: false
     - Class: voxblox_rviz_plugin/VoxbloxMesh
       Enabled: false
       Name: /voxblox_node_ugv1/mesh - VoxbloxMesh
@@ -2074,7 +2074,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2089,7 +2089,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: voxblox_rviz_plugin/VoxbloxMesh
       Enabled: false
       Name: /voxblox_node_ugv2/mesh - VoxbloxMesh
@@ -2109,7 +2109,7 @@ Visualization Manager:
       Color: 255; 255; 255
       Color Transformer: RGB8
       Decay Time: 0
-      Enabled: true
+      Enabled: false
       Invert Rainbow: false
       Max Color: 255; 255; 255
       Min Color: 0; 0; 0
@@ -2124,7 +2124,7 @@ Visualization Manager:
       Unreliable: false
       Use Fixed Frame: true
       Use rainbow: true
-      Value: true
+      Value: false
     - Class: rviz/Group
       Displays:
         - Alpha: 1
@@ -2187,7 +2187,7 @@ Visualization Manager:
             {}
           Queue Size: 100
           Value: true
-      Enabled: true
+      Enabled: false
       Name: ugv1 - elevation mapping
     - Class: rviz/Group
       Displays:
@@ -2251,211 +2251,39 @@ Visualization Manager:
             {}
           Queue Size: 100
           Value: true
-      Enabled: true
+      Enabled: false
       Name: ugv2 - elevation mapping
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        ugv3/base_footprint_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/camera_optical_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/chassis_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/fenders_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/front_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/laser_mount_cylinder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/mid_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/navsat_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/ouster_imu:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/ouster_lidar:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/ouster_sensor:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv3/rear_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv3/rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: ugv3/robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
     - Alpha: 1
       Class: rviz/RobotModel
       Collision Enabled: false
-      Enabled: true
+      Enabled: false
       Links:
         All Links Enabled: true
         Expand Joint Details: false
         Expand Link Details: false
         Expand Tree: false
         Link Tree Style: Links in Alphabetic Order
-        ugv4/base_footprint_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/base_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/camera_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/camera_optical_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/chassis_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/fenders_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/front_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/front_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/front_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/imu_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/laser_mount_cylinder:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/mid_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/navsat_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/ouster_imu:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/ouster_lidar:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/ouster_sensor:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/rear_left_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
-        ugv4/rear_mount:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-        ugv4/rear_right_wheel_link:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
-          Value: true
       Name: RobotModel
       Robot Description: ugv4/robot_description
       TF Prefix: ""
       Update Interval: 0
-      Value: true
+      Value: false
       Visual Enabled: true
   Enabled: true
   Global Options:
@@ -2488,7 +2316,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 20.76186180114746
+      Distance: 20.087404251098633
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -2496,17 +2324,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 2.4310851097106934
-        Y: 0.6475889086723328
-        Z: 1.6931982040405273
+        X: -3.045719623565674
+        Y: 1.6888679265975952
+        Z: -0.2528545558452606
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.1297974586486816
+      Pitch: 1.0797977447509766
       Target Frame: <Fixed Frame>
-      Yaw: 3.7703280448913574
+      Yaw: 1.2571423053741455
     Saved: ~
 Window Geometry:
   /ugv1/camera:
@@ -2518,7 +2346,7 @@ Window Geometry:
   Height: 987
   Hide Left Dock: false
   Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000005290000030cfc020000001afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000204000000f0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b000001dd000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001c0041006400760061006e00630065006400570069006400670065007401000002ea000000670000000000000000fb0000001c0041006400760061006e0063006500640057006900640067006500740100000357000000670000000000000000fb0000001c0041006400760061006e006300650064005700690064006700650074010000034a000000780000000000000000fb00000018002f0075006700760031002f00630061006d006500720061010000021e000000910000001600fffffffb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb00000018002f0075006700760032002f00630061006d00650072006101000002b5000000920000001600fffffffb0000001c0041006400760061006e0063006500640057006900640067006500740100000812000000b30000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d2000000c30000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000000000010000010f00000396fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000002800000396000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000077400000073fc0100000002fb0000000800540069006d00650100000000000007740000030700fffffffb0000000800540069006d00650100000000000004500000000000000000000002450000030c00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  QMainWindow State: 000000ff00000000fd0000000400000000000005290000030cfc020000001afb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000204000000f0fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b0000026f000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261fb0000001c0041006400760061006e00630065006400570069006400670065007401000002ea000000670000000000000000fb0000001c0041006400760061006e0063006500640057006900640067006500740100000357000000670000000000000000fb0000001c0041006400760061006e006300650064005700690064006700650074010000034a000000780000000000000000fb00000018002f0075006700760031002f00630061006d00650072006101000002b0000000970000001600fffffffb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb00000018002f0075006700760032002f00630061006d0065007200610000000297000000b00000001600fffffffb0000001c0041006400760061006e0063006500640057006900640067006500740100000812000000b30000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d2000000c30000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000fb0000001c0041006400760061006e00630065006400570069006400670065007401000008d1000000c40000000000000000000000010000010f00000396fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000002800000396000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000077400000073fc0100000002fb0000000800540069006d00650100000000000007740000030700fffffffb0000000800540069006d00650100000000000004500000000000000000000002450000030c00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
