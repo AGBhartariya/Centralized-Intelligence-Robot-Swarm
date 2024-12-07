@@ -33,7 +33,7 @@ for ((i=1; i<=N; i++)); do
   # sleep 1
 done
 
-roslaunch object_pose_database database.launch no_of_robots:=$N
+# roslaunch object_pose_database database.launch no_of_robots:=$N
 roslaunch robot_manager robot_manager.launch num_robots:=$N
 roslaunch task_manager task.launch
 

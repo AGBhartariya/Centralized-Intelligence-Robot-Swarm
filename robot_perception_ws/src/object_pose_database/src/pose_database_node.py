@@ -16,7 +16,7 @@ from collections import defaultdict
 import math
 
 class PoseDatabaseNode:
-    def _init_(self):
+    def __init__(self):
         # Initialize the ROS node
         rospy.init_node("pose_database_node")
 
@@ -264,7 +264,7 @@ class PoseDatabaseNode:
 
 
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     try:
         PoseDatabaseNode()
         rospy.spin()

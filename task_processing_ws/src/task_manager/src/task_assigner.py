@@ -153,6 +153,7 @@ def assign_tasks():
                 request.objectType=data[1]
                 object_locations = object_locations_client(request).locations
 
+                rospy.loginfo(f"Found object {data[1]} at {object_locations}")
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
                     task_cost_client = rospy.ServiceProxy(
