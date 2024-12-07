@@ -51,8 +51,8 @@ def task_callback(task):
 
 def increment_task_priorities():
     """Periodically increments the priorities of unassigned tasks."""
-    k = rospy.get_param("task_reassignment_interval", 10)  # Time interval in minutes
-    n = rospy.get_param("task_priority_increment", 1)  # Priority increment amount
+    k = rospy.get_param("~task_reassignment_interval", 10)  # Time interval in minutes
+    n = rospy.get_param("~task_priority_increment", 1)  # Priority increment amount
     current_time = time.time()
 
     # Convert `k` to seconds
@@ -88,7 +88,7 @@ def assign_tasks():
         increment_task_priorities()
 
         k = rospy.get_param(
-            "task_execution_interval", 0
+            "~task_execution_interval", 0
         )  # Execution interval in minutes
         k_seconds = k * 60
         current_time = time.time()
