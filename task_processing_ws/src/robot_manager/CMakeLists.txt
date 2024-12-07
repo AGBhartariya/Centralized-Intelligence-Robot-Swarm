@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   path_planner
   object_pose_database
+  trajectory_control_msgs
 )
 
 add_service_files(
@@ -32,7 +33,7 @@ generate_messages(
 )
 
 catkin_package(
-  CATKIN_DEPENDS rospy std_msgs message_runtime geometry_msgs visualization_msgs path_planner object_pose_database
+  CATKIN_DEPENDS rospy std_msgs message_runtime geometry_msgs visualization_msgs path_planner object_pose_database trajectory_control_msgs
 )
 
 catkin_install_python(PROGRAMS
