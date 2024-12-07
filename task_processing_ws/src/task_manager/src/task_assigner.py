@@ -16,19 +16,33 @@ priority_queue = []  # Stores (priority, task) tuples
 task_timestamps = {}  # Maps task description to timestamp
 
 
-def serialize_task_description(description):
-    """Serializes the task description (array) into a string."""
-    return json.dumps(description)
+def task_to_dict(task):
+    """
+    Converts the task object to a dictionary format.
+    If the task has a `__dict__` attribute, use it.
+    Otherwise, manually extract relevant attributes.
+    """
+    if hasattr(task, "__dict__"):
+        return vars(task)  # Use the built-in `vars` to get object's attributes
+    else:
+        # Fallback for custom serialization
+        return {
+            "id": getattr(task, "id", None),
+            "priority": getattr(task, "priority", None),
+            "description": getattr(task, "description", None),
+            # Add other fields as needed
+        }
 
 
-def deserialize_task_description(serialized_description):
-    """Deserializes the task description string back into an array."""
-    return json.loads(serialized_description)
-
+def serialize_task_description(task):
+    """Serializes the task description (object) into a string."""
+    task_dict = task_to_dict(task)
+    return json.dumps(task_dict)
 
 def task_callback(task):
     # Serialize task description for consistent storage and logging
-    serialized_description = serialize_task_description(task.description)
+    rospy.loginfo(f"Received task {task}")
+    serialized_description = serialize_task_description(task)
 
     # Add the task to the priority queue and record its timestamp
     heapq.heappush(priority_queue, (task.priority, task))
@@ -37,8 +51,8 @@ def task_callback(task):
 
 def increment_task_priorities():
     """Periodically increments the priorities of unassigned tasks."""
-    k = rospy.get_param("/task_reassignment_interval", 10)  # Time interval in minutes
-    n = rospy.get_param("/task_priority_increment", 1)  # Priority increment amount
+    k = rospy.get_param("task_reassignment_interval", 10)  # Time interval in minutes
+    n = rospy.get_param("task_priority_increment", 1)  # Priority increment amount
     current_time = time.time()
 
     # Convert `k` to seconds
@@ -74,7 +88,7 @@ def assign_tasks():
         increment_task_priorities()
 
         k = rospy.get_param(
-            "/task_execution_interval", 10
+            "task_execution_interval", 0
         )  # Execution interval in minutes
         k_seconds = k * 60
         current_time = time.time()
@@ -83,10 +97,12 @@ def assign_tasks():
         if current_time - last_execution_time < k_seconds:
             rospy.sleep(1)
             continue
-
+        
+        rospy.loginfo("Trying to reassign tasks")
         last_execution_time = current_time  # Update the last execution time
 
         if not priority_queue:
+            rospy.loginfo("No tasks available retrying after another cycle")
             rospy.sleep(1)
             continue
 
@@ -103,7 +119,7 @@ def assign_tasks():
         # Get free robots
         try:
             free_robots_client = rospy.ServiceProxy(
-                "/robot_manager/GetFreeRobots", GetFreeRobots
+                "get_free_robots", GetFreeRobots
             )
             free_robots_response = free_robots_client()
             free_robot_ids = free_robots_response.robot_ids
@@ -132,15 +148,16 @@ def assign_tasks():
                 data = task.description
                 task_locations = task.locations
                 # Get metadata for the task
-                object_locations_client = rospy.ServiceProxy("/task_data_service/QueryTaskData", QueryObjectLocations)
+                object_locations_client = rospy.ServiceProxy("query_loc", QueryObjectLocations)
                 request=QueryObjectLocationsRequest()
                 request.objectType=data[1]
                 object_locations = object_locations_client(request).locations
 
+                rospy.loginfo(f"Found object {data[1]} at {object_locations}")
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
                     task_cost_client = rospy.ServiceProxy(
-                        "/robot_manager/GetTaskCost", GetTaskCost
+                        "get_task_cost", GetTaskCost
                     )
                     response = task_cost_client(
                         task_type=data[0],
@@ -197,5 +214,6 @@ def generateTaskMsg(task: Task, assigned_location: PoseStamped) -> Task:
 
 if __name__ == "__main__":
     rospy.init_node("task_assigner")
+    rospy.loginfo("Started task assignment node")
     rospy.Subscriber("/task_topic", Task, task_callback)
     assign_tasks()

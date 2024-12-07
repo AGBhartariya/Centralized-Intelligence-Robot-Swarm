@@ -27,9 +27,18 @@ generate_messages(
   geometry_msgs
 )
 
+catkin_install_python(PROGRAMS
+  src/pose_database_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 catkin_package(
   CATKIN_DEPENDS rospy std_msgs geometry_msgs message_runtime
+)
+
+install(
+DIRECTORY launch 
+DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
 include_directories(

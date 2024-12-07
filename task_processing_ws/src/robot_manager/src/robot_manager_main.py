@@ -72,17 +72,18 @@ class RobotManager:
             cost_path = rospy.ServiceProxy('/trajectory_control_msgs/cost_path', GetCostPath)
             request = GetCostPathRequest()
             robot_pos = self.getRobotPos(robot_id)
-            obj_point=objectlocation.pose.position
             task_point=[]
             for loc in task_location:
                 task_point.append(loc.pose.position)   
             if task_desc==1:
+                obj_point=objectlocation.pose.position
                 all_points=[robot_pos]+[obj_point]+[task_point[1]]
             elif task_desc==2:
                 all_points=[robot_pos]+[task_point[0]]
             elif task_desc==3:
                 all_points=[robot_pos]+task_point
             elif task_desc==4:
+                obj_point=objectlocation.pose.position
                 all_points=[robot_pos]+[obj_point]
             elif task_desc==5:
                 all_points=[robot_pos]+[task_point[1]]
@@ -123,7 +124,7 @@ class RobotManager:
                     cost = temp
                     obj_loc = objectlocation
         else:
-            cost=self.computeCost(objectlocation, tasklocations, robot_id, task_desc)
+            cost=self.computeCost(objectlocations, tasklocations, robot_id, task_desc)
         return {"cost": cost, "object_location": obj_loc}  # Example cost function
 
 

@@ -12,17 +12,17 @@ from sklearn.cluster import KMeans
 from random import sample
 import numpy as np
 from collections import defaultdict
-from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
+# from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
 import math
 from object_pose_database.srv import GetObjectPose
 
 class PoseDatabaseNode:
-    def _init_(self):
+    def __init__(self):
         # Initialize the ROS node
         rospy.init_node("pose_database_node")
 
         # MongoDB connection details
-        self.mongo_uri = rospy.get_param("~mongo_uri", "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment")
+        self.mongo_uri = "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment" # rospy.get_param("~mongo_uri", "mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment")
         self.database_name = rospy.get_param("~database_name", "world")
         self.collection_name = rospy.get_param("~collection_name", "object")
 
@@ -269,7 +269,7 @@ class PoseDatabaseNode:
 
 
 
-if __name__ == "_main_":
+if __name__ == "__main__":
     try:
         PoseDatabaseNode()
         rospy.spin()
