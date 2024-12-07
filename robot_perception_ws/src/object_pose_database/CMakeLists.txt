@@ -37,6 +37,12 @@ DIRECTORY launch
 DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
+catkin_install_python(PROGRAMS
+  src/pose_database_node.py
+  DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+
 include_directories(
   ${catkin_INCLUDE_DIRS}
 )
