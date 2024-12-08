@@ -49,7 +49,7 @@
 
         <remap from="/planner/tasks/feedback" to="$(arg simulator)/$(arg robot_name)/planner/tasks/feedback"/>
 
-        <remap from="/expl_pause_topic" to="/expl_pause_topic"/> <!-- this is for all the robots -->
+        <remap from="/expl_pause_topic" to="$(arg robot_name)/expl_pause_topic"/> <!-- this is for all the robots -->
 
         <remap from="/expl_planner/visited_nodes" to="$(arg simulator)/$(arg robot_name)/expl_planner/visited_nodes"/>
         <remap from="/expl_planner/path" to="$(arg simulator)/$(arg robot_name)/expl_planner/path"/>

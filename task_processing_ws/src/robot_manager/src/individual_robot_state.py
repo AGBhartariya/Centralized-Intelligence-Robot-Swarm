@@ -31,8 +31,8 @@ class RobotStateNode:
 
         self.battery_threshold = 10
         self.battery_level = 100
-        self.retry_attempts = 3  # Maximum retries for a task
-        self.timeout_duration = 180  # Timeout duration in seconds
+        self.retry_attempts = 8  # Maximum retries for a task
+        self.timeout_duration = 15  # Timeout duration in seconds
         self.tolerance = 0.5  # Distance tolerance to consider "reached"
         self.rotation_attempts = 5  # Number of rotations at the location
 
@@ -75,7 +75,8 @@ class RobotStateNode:
 
 
         self.getObjectPose = rospy.ServiceProxy('/getObjectPose', GetObjectPose)
-
+        rospy.sleep(1)
+        self.expl_pause_pub.publish(Bool(False))
         rospy.loginfo(f"RobotStateNode for namespace '{self.namespace}' initialized.")
 
     def battery_callback(self, msg: Int32):
@@ -138,7 +139,7 @@ class RobotStateNode:
         charging_station_location = Point(0, 0, 0)  # Replace with actual coordinates
         if self.navigate_to_point(charging_station_location):
             rospy.loginfo("Successfully reached charging station.")
-            self.expl_pause_pub.publish(True)  # Pause exploration
+            self.expl_pause_pub.publish(Bool(True))  # Pause exploration
 
             # Simulate charging until battery is full
             while self.battery_level < self.full_battery:
@@ -146,7 +147,7 @@ class RobotStateNode:
                 rospy.sleep(1)  # Wait for battery to charge (simulated)
 
             rospy.loginfo("Battery fully charged.")
-            self.expl_pause_pub.publish(False)  # Resume exploration
+            self.expl_pause_pub.publish(Bool(False))  # Resume exploration
             self.state = self.default_state
         else:
             rospy.logwarn("Failed to reach charging station.")
@@ -190,7 +191,8 @@ class RobotStateNode:
         self.update_database(
             self.current_object, self.current_object_pose, "occupied"
         )
-
+        rospy.loginfo("Pausing Exploration")
+        self.expl_pause_pub.publish(Bool(True))
         if self.task_type == 1:
             self.bring_object(location_1, location_2)
         elif self.task_type == 2:
@@ -203,7 +205,8 @@ class RobotStateNode:
             self.go_to_location(location_1, location_2)
         
         rospy.loginfo("Task executed")
-
+        rospy.loginfo("Resuming Exploration")
+        self.expl_pause_pub.publish(Bool(False))
     # Task type 1
     def bring_object(self, location_1: PoseStamped, location_2: PoseStamped):
         rospy.loginfo(
@@ -522,7 +525,7 @@ class RobotStateNode:
             distance = math.sqrt(
                 (location.pose.position.x - trans[0]) ** 2
                 + (location.pose.position.y - trans[1]) ** 2
-                + (location.pose.position.z - trans[1]) ** 2
+                + (location.pose.position.z - trans[2]) ** 2
             )
             rospy.loginfo(f"Current distance from current goal: {distance}")
             return distance <= self.tolerance

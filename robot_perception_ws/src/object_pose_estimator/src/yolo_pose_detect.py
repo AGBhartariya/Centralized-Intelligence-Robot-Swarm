@@ -45,7 +45,7 @@ class ObjectDetectorPoseEstimator:
         self.image_pub = rospy.Publisher("detectedImage", Image, queue_size=10)
 
         # ROS parameters
-        self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.8)
+        self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.6)
         self.visualize_detected_pose = rospy.get_param("~visualizeDetectedPose", True)
 
     def rgb_callback(self, msg):
@@ -132,7 +132,7 @@ class ObjectDetectorPoseEstimator:
             return pose
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
             rospy.logerr("Transform failed: %s", e)
-            return None
+            return PoseStamped()
     
     def detect_and_estimate(self):
         if self.rgb_image is None:
@@ -164,7 +164,7 @@ class ObjectDetectorPoseEstimator:
 
                             pose_msg = PoseStamped()
                             pose_msg.header.stamp = rospy.Time.now()
-                            pose_msg.header.frame_id = "camera_frame"
+                            pose_msg.header.frame_id = "camera_optical_link"
                             pose_msg.pose.position.x = centroid[0]
                             pose_msg.pose.position.y = centroid[1]
                             pose_msg.pose.position.z = centroid[2]

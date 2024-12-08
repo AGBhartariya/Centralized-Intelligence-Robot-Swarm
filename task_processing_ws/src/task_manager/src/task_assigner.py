@@ -224,7 +224,7 @@ def assign_tasks():
                 task = generateTaskMsg(task, assigned_location)
                 if robot_id not in task_pubs:
                     task_pubs[robot_id] = rospy.Publisher(f"/{robot_id}/start_task", Task, queue_size=1)
-                    rospy.sleep(5)
+                    rospy.sleep(1)
                     
                 task_pubs[robot_id].publish(task)
                 rospy.loginfo(f"Published task {task} on /{robot_id}/start_task")

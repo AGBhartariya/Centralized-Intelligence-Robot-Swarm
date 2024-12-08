@@ -143,7 +143,7 @@ class RobotStateManager:
 
                     distance = ((p2.x - p1.x)**2 + (p2.y - p1.y)**2 + (p2.z - p1.z)**2)**0.5
                     total_cost += distance
-            return total_cost
+            return total_cost if total_cost > 0 else np.inf
         except rospy.ServiceException as e:
            print("Service call failed: %s"%e)
            return None
@@ -160,7 +160,7 @@ class RobotStateManager:
 
     def assign_points(self, event):
         self.patrol = True
-        self.is_patrolling_pub.publish(True)
+        self.is_patrolling_pub.publish(Bool(True))
         # Reset no_gain_received to require all robots to resend NoGain
         self.no_gain_received = {ns: False for ns in self.robot_namespaces}
 
