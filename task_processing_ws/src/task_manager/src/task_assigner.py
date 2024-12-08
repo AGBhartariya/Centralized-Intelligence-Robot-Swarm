@@ -10,42 +10,74 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 import time
 import json  # For serializing task description arrays
+import itertools
 
 # Priority queue and a dictionary to track task timestamps
 priority_queue = []  # Stores (priority, task) tuples
 task_timestamps = {}  # Maps task description to timestamp
+_task_counter = itertools.count() 
 
+def pose_stamped_to_dict(pose_stamped: PoseStamped):
+    """
+    Converts a PoseStamped message to a dictionary.
+    """
+    return {
+        "header": {
+            "seq": pose_stamped.header.seq,
+            "stamp": {
+                "secs": pose_stamped.header.stamp.secs,
+                "nsecs": pose_stamped.header.stamp.nsecs
+            },
+            "frame_id": pose_stamped.header.frame_id
+        },
+        "pose": {
+            "position": {
+                "x": pose_stamped.pose.position.x,
+                "y": pose_stamped.pose.position.y,
+                "z": pose_stamped.pose.position.z
+            },
+            "orientation": {
+                "x": pose_stamped.pose.orientation.x,
+                "y": pose_stamped.pose.orientation.y,
+                "z": pose_stamped.pose.orientation.z,
+                "w": pose_stamped.pose.orientation.w
+            }
+        }
+    }
 
-def task_to_dict(task):
+def task_to_dict(task: Task):
     """
     Converts the task object to a dictionary format.
-    If the task has a `__dict__` attribute, use it.
-    Otherwise, manually extract relevant attributes.
+    Handles PoseStamped serialization.
     """
-    if hasattr(task, "__dict__"):
-        return vars(task)  # Use the built-in `vars` to get object's attributes
-    else:
-        # Fallback for custom serialization
-        return {
-            "id": getattr(task, "id", None),
-            "priority": getattr(task, "priority", None),
-            "description": getattr(task, "description", None),
-            # Add other fields as needed
-        }
+    task_dict = {
+        "priority": getattr(task, "priority", None),
+        "description": getattr(task, "description", None),
+    }
 
+    # Handle locations which might contain PoseStamped
+    locations = getattr(task, "locations", None)
+    if locations:
+        # Convert locations to a list of dictionaries if they are PoseStamped
+        task_dict["locations"] = [
+            pose_stamped_to_dict(loc) if hasattr(loc, 'header') else loc 
+            for loc in locations
+        ]
 
-def serialize_task_description(task):
+    return task_dict
+
+def serialize_task_description(task: Task):
     """Serializes the task description (object) into a string."""
     task_dict = task_to_dict(task)
-    return json.dumps(task_dict)
+    return json.dumps(task_dict, allow_nan=True)
 
-def task_callback(task):
+def task_callback(task: Task):
     # Serialize task description for consistent storage and logging
     rospy.loginfo(f"Received task {task}")
     serialized_description = serialize_task_description(task)
 
     # Add the task to the priority queue and record its timestamp
-    heapq.heappush(priority_queue, (task.priority, task))
+    heapq.heappush(priority_queue, (task.priority, next(_task_counter), task))
     task_timestamps[serialized_description] = time.time()
 
 
@@ -60,7 +92,7 @@ def increment_task_priorities():
 
     updated_tasks = []
     while priority_queue:
-        priority, task = heapq.heappop(priority_queue)
+        priority, _, task = heapq.heappop(priority_queue)
         serialized_description = serialize_task_description(task)
         timestamp = task_timestamps[serialized_description]
 
@@ -77,7 +109,7 @@ def increment_task_priorities():
 
     # Rebuild the priority queue with updated priorities
     for priority, task in updated_tasks:
-        heapq.heappush(priority_queue, (priority, task))
+        heapq.heappush(priority_queue, (priority, next(_task_counter), task))
 
 
 def assign_tasks():
@@ -110,7 +142,7 @@ def assign_tasks():
         highest_priority = priority_queue[0][0] if priority_queue else None
         tasks = []
         while priority_queue and priority_queue[0][0] == highest_priority:
-            _, task = heapq.heappop(priority_queue)
+            _, _, task = heapq.heappop(priority_queue)
             tasks.append(task)
 
         if not tasks:
@@ -127,12 +159,12 @@ def assign_tasks():
             if not free_robot_ids:
                 rospy.loginfo("No free robots available, re-queueing tasks...")
                 for task in tasks:
-                    heapq.heappush(priority_queue, (task.priority, task))
+                    heapq.heappush(priority_queue, (task.priority, next(_task_counter), task))
                 continue
         except rospy.ServiceException as e:
             rospy.logerr(f"Failed to get free robots: {e}")
             for task in tasks:
-                heapq.heappush(priority_queue, (task.priority, task))
+                heapq.heappush(priority_queue, (task.priority, next(_task_counter), task))
             continue
 
         # Create a cost matrix and store object locations
@@ -175,7 +207,7 @@ def assign_tasks():
             rospy.logerr(f"Service call failed during cost calculation: {e}")
             # Re-queue tasks in case of a failure
             for task in tasks:
-                heapq.heappush(priority_queue, (task.priority, task))
+                heapq.heappush(priority_queue, (task.priority, next(_task_counter), task))
             continue
 
         # Solve the assignment problem
@@ -198,7 +230,7 @@ def assign_tasks():
         # Requeue any tasks that couldn't be assigned
         for i in range(num_tasks):
             if i not in task_indices:
-                heapq.heappush(priority_queue, (tasks[i].priority, tasks[i]))
+                heapq.heappush(priority_queue, (tasks[i].priority, next(_task_counter), tasks[i]))
 
 def generateTaskMsg(task: Task, assigned_location: PoseStamped) -> Task:
     # Format the task as the per the individual robot state requirement

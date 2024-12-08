@@ -46,9 +46,13 @@ class TaskPublisher:
 
             if task_type in [2, 3]:
                 x3 = self.get_pose("initial location")
+                x3.header.stamp = rospy.Time.now()
+                x3.header.frame_id = "map"
 
             if task_type in [1, 3, 5]:
                 x4 = self.get_pose("destination location")
+                x4.header.stamp = rospy.Time.now()
+                x4.header.frame_id = "map"
             
             task.locations = [x3, x4]
 
