@@ -6,7 +6,7 @@ import ast
 import google.generativeai as genai
 
 class GeminiTaskConverterServer:
-    def __init__(self, host='localhost', port=65432):
+    def __init__(self, host='localhost', port=65435):
         # Configure Gemini AI
         genai.configure(api_key="AIzaSyBNty03zfPQ2hF1cfYe8-dEvk7fop3K37I")
         self.model = genai.GenerativeModel("gemini-1.5-flash")
@@ -78,6 +78,28 @@ Where:
 - If **x3** or **x4** is irrelevant, explicitly set it to (0, 0, 0).
 - Ensure that **x2** is derived directly from the user prompt (e.g., "package," "fire extinguisher") and then put in its encoded form/label.
   The objects of interest with their label are listed above.
+- If nothing is specified about the task object like in case of task type 5, take it as 0.
+
+
+### Examples:
+
+1. **Prompt:** "Find me a fire hydrant."  
+   **Task Message:** [1, [4, 10], [[0,0,0], [0,0,0]]]
+
+2. **Prompt:** "Inspect the laptop at (3, 4)."  
+   **Task Message:** [1, [2, 63], [[3, 4, 0], [0, 0, 0]]]
+
+3. **Prompt:** "Move the chair from (3, 4, 1) to (6, 7, 2)."  
+   **Task Message:** [1, [3, 56], [[3, 4, 1], [6, 7, 2]]]
+
+4. **Prompt:** "Bring a sandwich to (1, 2, 3)."  
+   **Task Message:** [1, [1, 48], [[0, 0, 0], [1, 2, 3]]]
+
+5. **Prompt:** "Check the snowboard at location (5, 6, 0)."  
+   **Task Message:** [1, [2, 31], [[5, 6, 0], [0, 0, 0]]]
+
+6. **Prompt:** "Go to 2, 3 "
+   **Task Message:** [1, [5, 0], [[0, 0, 0], [2, 3, 0]]] 
 
 ---
 
