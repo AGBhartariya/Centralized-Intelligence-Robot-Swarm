@@ -180,7 +180,7 @@ def assign_tasks():
                 data = task.description
                 task_locations = task.locations
                 # Get metadata for the task
-                object_locations_client = rospy.ServiceProxy("/robot_db/query_loc", QueryObjectLocations)
+                object_locations_client = rospy.ServiceProxy("/query_loc", QueryObjectLocations)
                 request=QueryObjectLocationsRequest()
                 request.objectType=data[1]
                 object_locations = object_locations_client(request).locations
