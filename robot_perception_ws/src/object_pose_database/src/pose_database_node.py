@@ -33,10 +33,10 @@ class PoseDatabaseNode:
         # Connect to MongoDB
         self._connect_to_mongo()
 
-        self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
-        self.service = rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
-        self.service = rospy.Service("getObjectPose", GetObjectPose, self.query_objects_by_robot_location_and_id )
-        self.service = rospy.Service("clustering",ClusterAndSample, self.cluster_and_sample_callback )
+        rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
+        rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
+        rospy.Service("getObjectPose", GetObjectPose, self.query_objects_by_robot_location_and_id )
+        rospy.Service("clustering",ClusterAndSample, self.cluster_and_sample_callback )
         
 
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")

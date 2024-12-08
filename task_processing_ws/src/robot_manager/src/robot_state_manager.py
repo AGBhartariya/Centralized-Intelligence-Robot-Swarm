@@ -11,7 +11,7 @@ import tf
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 from trajectory_control_msgs.srv import GetCostPath, GetCostPathRequest
-
+from object_pose_database.srv import ClusterAndSample, ClusterAndSampleRequest 
 
 class RobotStateManager:
     def __init__(self):
@@ -111,11 +111,15 @@ class RobotStateManager:
             )
 
     def sample_points(self, num_points=10):
-        # Placeholder for map boundaries; adjust as needed
-        return [
-            Point(x=random.uniform(0, 100), y=random.uniform(0, 100), z=0.0)
-            for _ in range(num_points)
-        ]
+        rospy.wait_for_service('clustering')
+        try:
+            clusters = rospy.ServiceProxy('clustering', ClusterAndSample)
+            request = ClusterAndSampleRequest()
+            request.num_points_per_cluster = num_points
+            response = clusters(request)
+            return response.points
+        except:
+            return 'error occured in service'
 
     def calculate_cost(self, robot_position, goal_position, robot_id):
         # Compute Euclidean distance as the cost
