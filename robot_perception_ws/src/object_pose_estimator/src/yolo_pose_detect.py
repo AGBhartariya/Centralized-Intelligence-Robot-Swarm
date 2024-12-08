@@ -20,7 +20,7 @@ class ObjectDetectorPoseEstimator:
         rospy.init_node("object_detector_pose_estimator", anonymous=True)
 
         # Get namespace from ROS arguments
-        namespace = rospy.get_param("yolo_detect/robot_namespace", "robot")
+        self.namespace = rospy.get_param("yolo_detect/robot_namespace", "robot")
 
         # YOLO model setup
         self.model = YOLO("yolo11n.pt")  # Load pretrained YOLO model
@@ -127,7 +127,7 @@ class ObjectDetectorPoseEstimator:
     def transf(self,pose):
         listener = tf.TransformListener()
         try:
-            listener.waitForTransform("odom", "camera_optical_link", rospy.Time(0), rospy.Duration(4.0))
+            listener.waitForTransform("odom", f"{self.namespace}/camera_optical_link", rospy.Time(0), rospy.Duration(4.0))
             pose = listener.transformPose("odom", pose)
             return pose
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
