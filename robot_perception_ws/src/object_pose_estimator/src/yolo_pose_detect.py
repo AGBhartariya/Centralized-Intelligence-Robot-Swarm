@@ -34,14 +34,14 @@ class ObjectDetectorPoseEstimator:
         self.camera_matrix = None
         
         # Subscribers
-        self.rgb_sub = rospy.Subscriber(f"realsense/color/image_raw", Image, self.rgb_callback)
-        self.depth_sub = rospy.Subscriber(f"realsense/depth/image_rect_raw", Image, self.depth_callback)
-        self.pc_sub = rospy.Subscriber(f"realsense/depth/color/points", PointCloud2, self.pc_callback)
-        self.camera_info_sub = rospy.Subscriber(f"realsense/color/camera_info", CameraInfo, self.camera_info_callback)
+        self.rgb_sub = rospy.Subscriber("camera/image_raw", Image, self.rgb_callback)
+        self.depth_sub = rospy.Subscriber("camera/depth/image_raw", Image, self.depth_callback)
+        self.pc_sub = rospy.Subscriber("camera/depth/points", PointCloud2, self.pc_callback)
+        self.camera_info_sub = rospy.Subscriber("camera/camera_info", CameraInfo, self.camera_info_callback)
 
         # Publisher
-        self.detected_object_pub = rospy.Publisher(f"detect_object", DetectObject, queue_size=10)
-        self.image_pub = rospy.Publisher(f"detectedImage", Image, queue_size=10)
+        self.detected_object_pub = rospy.Publisher("detect_object", DetectObject, queue_size=10)
+        self.image_pub = rospy.Publisher("detectedImage", Image, queue_size=10)
 
         # ROS parameters
         self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.8)
