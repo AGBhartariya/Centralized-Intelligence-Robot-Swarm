@@ -175,11 +175,6 @@ void QueuePathPlanner::returnCostPath(const trajectory_control_msgs::PlanningTas
 
     int num_segments = task_msg.segment_count;
 
-    // create a new task object
-    // std::vector<TaskSegment*> task;
-    
-    task->type = (TaskType)task_msg.type;
-
     // for each task-segment contained in the task
     for (int i = 0; i < num_segments; i++)
     {

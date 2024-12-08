@@ -67,9 +67,9 @@ class RobotManager:
     
     def computeCost(self, objectlocation, task_location, robot_id, task_desc):
         #implement cost function for all scenarios
-        rospy.wait_for_service('cost_path')
+        rospy.wait_for_service(f'{robot_id}/cost_path')
         try:
-            cost_path = rospy.ServiceProxy('/cost_path', GetCostPath)
+            cost_path = rospy.ServiceProxy(f'{robot_id}/cost_path', GetCostPath)
             request = GetCostPathRequest()
             robot_pos = self.getRobotPos(robot_id)
             task_point=[]

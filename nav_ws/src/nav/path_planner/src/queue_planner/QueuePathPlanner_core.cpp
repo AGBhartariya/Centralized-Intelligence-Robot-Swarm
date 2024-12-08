@@ -112,8 +112,9 @@ QueuePathPlanner::QueuePathPlanner(void)
     
     
     utility_2d_sub_ = node_.subscribe("/planner/utility_2d", 1, &QueuePathPlanner::utility2DCloudCallback, this);
-
-    cost_path_ser = node_.advertiseService("/cost_path", &QueuePathPlanner::getCostPath,this);
+    
+    std::string robot_name = robot_frame_.substr(0, robot_frame_.find("/", 1) + 1);
+    cost_path_ser = node_.advertiseService(robot_name + "cost_path", &QueuePathPlanner::getCostPath,this);
     // cloud cropping visualization
 #ifdef VERBOSE
     cropbox_pub_ = node_.advertise<sensor_msgs::PointCloud2>("/planner/waypoints/cropbox", 1);
