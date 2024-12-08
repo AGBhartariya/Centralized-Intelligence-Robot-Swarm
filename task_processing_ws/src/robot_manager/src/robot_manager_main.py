@@ -57,8 +57,8 @@ class RobotManager:
         listener = tf.TransformListener()
         try:
             # Wait for the transform to become available
-            listener.waitForTransform("odom", f"{robot_id}/base_link", rospy.Time(0), rospy.Duration(5.0))
-            (trans, rot) = listener.lookupTransform("odom", f"{robot_id}/base_link", rospy.Time(0))
+            listener.waitForTransform("map", f"{robot_id}/base_link", rospy.Time(0), rospy.Duration(5.0))
+            (trans, rot) = listener.lookupTransform("map", f"{robot_id}/base_link", rospy.Time(0))
             return Point(x=trans[0],y=trans[1],z=trans[2])
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
             rospy.logerr("Error getting transform: %s", e)

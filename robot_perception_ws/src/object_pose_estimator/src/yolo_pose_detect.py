@@ -127,8 +127,8 @@ class ObjectDetectorPoseEstimator:
     def transf(self,pose):
         listener = tf.TransformListener()
         try:
-            listener.waitForTransform("odom", f"{self.namespace}/camera_optical_link", rospy.Time(0), rospy.Duration(4.0))
-            pose = listener.transformPose("odom", pose)
+            listener.waitForTransform("map", f"{self.namespace}/camera_optical_link", rospy.Time(0), rospy.Duration(4.0))
+            pose = listener.transformPose("map", pose)
             return pose
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
             rospy.logerr("Transform failed: %s", e)

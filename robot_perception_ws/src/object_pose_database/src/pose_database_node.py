@@ -3,7 +3,7 @@
 import rospy
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure
-from geometry_msgs.msg import Point
+from geometry_msgs.msg import Point, PoseStamped
 from std_msgs.msg import Int32
 from object_pose_database.msg import DetectObject
 from object_pose_database.srv import UpdateDatabase
@@ -275,8 +275,8 @@ class PoseDatabaseNode:
             return positions[0]
 
         except Exception as e:
-            rospy.logerr(f"Failed to query database: {e}")
-            return []
+            rospy.logerr(f"Failed to query database: {e}. Returning null pose")
+            return PoseStamped()
 
 
 

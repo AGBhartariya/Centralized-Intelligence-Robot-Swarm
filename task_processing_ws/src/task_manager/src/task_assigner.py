@@ -16,6 +16,7 @@ import itertools
 priority_queue = []  # Stores (priority, task) tuples
 task_timestamps = {}  # Maps task description to timestamp
 _task_counter = itertools.count() 
+task_pubs = {}
 
 def pose_stamped_to_dict(pose_stamped: PoseStamped):
     """
@@ -221,8 +222,11 @@ def assign_tasks():
                 robot_id = free_robot_ids[robot_idx]
                 assigned_location = task_object_locations[task_idx][robot_idx]
                 task = generateTaskMsg(task, assigned_location)
-                task_pub = rospy.Publisher(f"/{robot_id}/start_task", Task, queue_size=1)
-                task_pub.publish(task)
+                if robot_id not in task_pubs:
+                    task_pubs[robot_id] = rospy.Publisher(f"/{robot_id}/start_task", Task, queue_size=1)
+                    rospy.sleep(5)
+                    
+                task_pubs[robot_id].publish(task)
                 rospy.loginfo(f"Published task {task} on /{robot_id}/start_task")
             else:
                 rospy.loginfo("No valid assignment found for some tasks.")

@@ -70,7 +70,7 @@ class RobotStateNode:
         )
 
         self.task_pub_server = rospy.Publisher(
-            f"planner/waypoints/server", Point, queue_size=10
+            f"planner/waypoints/server/update", Point, queue_size=10
         )
 
 
@@ -166,6 +166,7 @@ class RobotStateNode:
         if self.battery_level <= self.battery_threshold:
             self.abort_task("Battery too low to execute task.")
             return
+        rospy.loginfo("Received a task")
 
         task_type, task_object, location_1, location_2 = (
             task.description[0],
@@ -185,6 +186,7 @@ class RobotStateNode:
         self.current_object_pose = self.getObjectPose(temp).pose
         self.task_type = task_type
         self.state = 3
+
         self.update_database(
             self.current_object, self.current_object_pose, "occupied"
         )
@@ -199,6 +201,8 @@ class RobotStateNode:
             self.find_object(location_1, location_2)
         elif self.task_type == 5:
             self.go_to_location(location_1, location_2)
+        
+        rospy.loginfo("Task executed")
 
     # Task type 1
     def bring_object(self, location_1: PoseStamped, location_2: PoseStamped):
@@ -507,6 +511,7 @@ class RobotStateNode:
         task_msg.type = 0  # Either normal or cyclic type
         task_msg.waypoints = [waypoint_msg]
         self.task_pub_server.publish(waypoint_msg)
+        rospy.sleep(1)
         self.task_pub.publish(task_msg)
 
     def is_within_tolerance(self, location: PoseStamped):
@@ -519,6 +524,7 @@ class RobotStateNode:
                 + (location.pose.position.y - trans[1]) ** 2
                 + (location.pose.position.z - trans[1]) ** 2
             )
+            rospy.loginfo(f"Current distance from current goal: {distance}")
             return distance <= self.tolerance
         except (
             tf.LookupException,
@@ -540,11 +546,12 @@ class RobotStateNode:
         """
         Database update logic.
         """
-        rospy.wait_for_service('update_data')
+        rospy.wait_for_service('/update_data')
+        rospy.loginfo("Updating db")
         try:
             update_data = rospy.ServiceProxy('/object_pose_database/update_data', UpdateDatabase)
             request = UpdateDatabaseRequest()
-            request.objectId = task_object
+            request.task_object = task_object
             request.status = status
             request.pose = pose
             response = update_data(request)

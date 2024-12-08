@@ -130,7 +130,7 @@ class RobotStateManager:
             request = GetCostPathRequest()
             goal_point=goal_position
             request.task.waypoints = [robot_position, goal_point] 
-            request.task.header.frame_id='odom'
+            request.task.header.frame_id='map'
             request.task.segment_count=1
             response = cost_path(request)
             total_cost=0
@@ -151,8 +151,8 @@ class RobotStateManager:
     def getRobotPos(self,robot_id):
         listener = tf.TransformListener()
         try:
-            listener.waitForTransform("odom", f"{robot_id}/base_link", rospy.Time(0), rospy.Duration(5.0))
-            (trans, rot) = listener.lookupTransform("odom", f"{robot_id}/base_link", rospy.Time(0))
+            listener.waitForTransform("map", f"{robot_id}/base_link", rospy.Time(0), rospy.Duration(5.0))
+            (trans, rot) = listener.lookupTransform("map", f"{robot_id}/base_link", rospy.Time(0))
             return Point(x=trans[0],y=trans[1],z=trans[2])
         except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
             rospy.logerr("Error getting transform: %s", e)
