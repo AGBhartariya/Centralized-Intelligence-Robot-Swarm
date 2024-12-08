@@ -93,7 +93,7 @@
 
     <!-- Camera -->
     <gazebo reference="${frame_prefix}camera_link">
-      <sensor type="camera" name="camera">
+      <sensor type="depth" name="camera">
         <update_rate>${cameraRate}</update_rate>
         <camera name="head">
           <horizontal_fov> 1.9199</horizontal_fov> <!-- 110 degs-->
@@ -115,22 +115,32 @@
             <stddev>0.007</stddev>
           </noise>
         </camera>
-        <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <plugin name="camera_plugin" filename="libgazebo_ros_openni_kinect.so">
+          <robotNamespace>${robot_name}</robotNamespace>
+          <baseline>0.2</baseline>
           <alwaysOn>true</alwaysOn>
+          <!-- Keep this zero, update_rate in the parent <sensor> tag
+            will control the frame rate. -->
           <updateRate>0.0</updateRate>
-          <cameraName>camera</cameraName>
-          <imageTopicName>${topic_prefix}image_raw</imageTopicName>
-          <cameraInfoTopicName>${topic_prefix}camera_info</cameraInfoTopicName>
-          <frameName>${frame_prefix}camera_link</frameName>
-          <!-- setting hackBaseline to anything but 0.0 will cause a misalignment
-            between the gazebo sensor image and the frame it is supposed to
-            be attached to -->        
-          <hackBaseline>0.0</hackBaseline>
-          <distortionK1>0.0</distortionK1>
-          <distortionK2>0.0</distortionK2>
-          <distortionK3>0.0</distortionK3>
-          <distortionT1>0.0</distortionT1>
-          <distortionT2>0.0</distortionT2>
+          <cameraName>camera_ir</cameraName>
+          <imageTopicName>/camera/color/image_raw</imageTopicName>
+          <cameraInfoTopicName>/camera/color/camera_info</cameraInfoTopicName>
+          <depthImageTopicName>/camera/depth/image_raw</depthImageTopicName>
+          <depthImageCameraInfoTopicName>/camera/depth/camera_info</depthImageCameraInfoTopicName>
+          <pointCloudTopicName>/camera/depth/points</pointCloudTopicName>
+          <frameName>camera_link</frameName>
+          <pointCloudCutoff>0.5</pointCloudCutoff>
+          <pointCloudCutoffMax>3.0</pointCloudCutoffMax>
+          <distortionK1>0</distortionK1>
+          <distortionK2>0</distortionK2>
+          <distortionK3>0</distortionK3>
+          <distortionT1>0</distortionT1>
+          <distortionT2>0</distortionT2>
+          <CxPrime>0</CxPrime>
+          <Cx>0</Cx>
+          <Cy>0</Cy>
+          <focalLength>0</focalLength>
+          <hackBaseline>0</hackBaseline>
         </plugin>
       </sensor>
     </gazebo>

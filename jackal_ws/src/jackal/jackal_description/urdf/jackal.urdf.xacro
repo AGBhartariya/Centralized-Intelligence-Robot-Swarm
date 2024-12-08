@@ -277,14 +277,14 @@
     <collision>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-    <box size="${camera_link} ${camera_link} ${camera_link}"/>
+        <box size="${camera_link} ${camera_link} ${camera_link}"/>
       </geometry>
     </collision>
 
     <visual>
       <origin xyz="0 0 0" rpy="0 0 0"/>
       <geometry>
-    <box size="${camera_link} ${camera_link} ${camera_link}"/>
+        <box size="${camera_link} ${camera_link} ${camera_link}"/>
       </geometry>
       <material name="black"/>
     </visual>

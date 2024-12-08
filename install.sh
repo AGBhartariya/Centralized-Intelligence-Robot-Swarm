@@ -129,18 +129,18 @@ cd -
 
 # these are necessary for the qt application with PyQt5
 sudo apt-get install -y python3-pip 
-pip3 install pyqt5==5.14.0 --user  # issues with newest PyQt5 https://stackoverflow.com/questions/59711301/install-pyqt5-5-14-1-on-linux
+# pip3 install pyqt5==5.14.0 --user  # issues with newest PyQt5 https://stackoverflow.com/questions/59711301/install-pyqt5-5-14-1-on-linux
 
-if [[ $version == *"18.04"* ]] ; then
-	sudo apt-get install -y libcanberra-gtk-module libcanberra-gtk3-module
-	sudo apt-get install -y libqt4-dev python-qt4
-else
-    pip install --upgrade pip
-	pip install pydot
-    pip install graphviz
-	pip install PyQt5
-	sudo apt-get install -y qt5-default python3-pyqt5 
-fi 
+# if [[ $version == *"18.04"* ]] ; then
+# 	sudo apt-get install -y libcanberra-gtk-module libcanberra-gtk3-module
+# 	sudo apt-get install -y libqt4-dev python-qt4
+# else
+#     pip install --upgrade pip
+# 	pip install pydot
+#     pip install graphviz
+# 	pip install PyQt5
+# 	sudo apt-get install -y qt5-default python3-pyqt5 
+# fi 
 
 # for running demos from https://github.com/ethz-asl/rotors_simulator
 if [ ! -f /.dockerenv ]; then # if we are outside a docker container 
