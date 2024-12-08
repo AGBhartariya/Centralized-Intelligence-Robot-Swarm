@@ -145,6 +145,7 @@ class ObjectDetectorPoseEstimator:
         for result in results:
             for box in result.boxes:
                 confidence = box.conf.item()
+                rospy.loginfo(f"Detected {box.cls.item()} with {confidence} confidence")
                 if confidence >= self.confidence_threshold:
                     detected = True
                     bbox = box.xyxy.int().tolist()[0]

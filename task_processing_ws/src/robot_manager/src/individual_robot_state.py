@@ -206,6 +206,7 @@ class RobotStateNode:
         
         rospy.loginfo("Task executed")
         rospy.loginfo("Resuming Exploration")
+        self.cleanup_after_task()
         self.expl_pause_pub.publish(Bool(False))
     # Task type 1
     def bring_object(self, location_1: PoseStamped, location_2: PoseStamped):
