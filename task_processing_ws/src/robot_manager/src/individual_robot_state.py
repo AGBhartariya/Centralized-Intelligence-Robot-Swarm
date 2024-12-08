@@ -69,6 +69,11 @@ class RobotStateNode:
             f"planner/tasks/remove", PlanningTask, queue_size=10
         )
 
+        self.task_pub_server = rospy.Publisher(
+            f"/planner/waypoints/server", Point, queue_size=10
+        )
+
+
         self.getObjectPose = rospy.ServiceProxy('/getObjectPose', GetObjectPose)
 
         rospy.loginfo(f"RobotStateNode for namespace '{self.namespace}' initialized.")
@@ -502,6 +507,7 @@ class RobotStateNode:
         task_msg.type = 0  # Either normal or cyclic type
         task_msg.waypoints = [waypoint_msg]
         self.task_pub.publish(task_msg)
+        self.task_pub_server.publish(waypoint_msg)
 
     def is_within_tolerance(self, location: PoseStamped):
         try:
