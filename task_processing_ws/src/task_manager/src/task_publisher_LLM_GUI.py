@@ -20,7 +20,7 @@ class GeminiTaskConverterClient(QThread):
         super().__init__()
         self.user_prompt = user_prompt
         self.host = 'localhost'
-        self.port = 65432
+        self.port = 65435
 
     def run(self):
         try:
