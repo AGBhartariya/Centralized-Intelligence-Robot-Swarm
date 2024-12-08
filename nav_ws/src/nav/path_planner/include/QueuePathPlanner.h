@@ -193,7 +193,8 @@ protected:
 
     // the main path planning callback: perform the planning on the input segment of the given input task
     void pathPlanningCallback(TaskSegmentPtr segment, TaskPtr task);
-    
+    void pathPlanningCallback(TaskSegmentPtr segment);
+
     void publishCropboxPcl(TaskSegmentPtr segment, TaskPtr task);
     void publishTestCropboxPcl(TaskSegmentPtr segment, TaskPtr task);
     

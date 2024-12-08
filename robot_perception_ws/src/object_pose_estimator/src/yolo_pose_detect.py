@@ -10,6 +10,7 @@ from std_msgs.msg import Int32
 from cv_bridge import CvBridge
 np.float = float
 from ultralytics import YOLO
+from torch.cuda import is_available as device_check
 import ros_numpy
 import cv2
 
@@ -22,7 +23,8 @@ class ObjectDetectorPoseEstimator:
 
         # YOLO model setup
         self.model = YOLO("yolo11n.pt")  # Load pretrained YOLO model
-        self.model.to("cuda")  # Use GPU if available
+        device = "cuda" if device_check() else "cpu"
+        self.model.to(device) 
 
         # Utilities
         self.bridge = CvBridge()

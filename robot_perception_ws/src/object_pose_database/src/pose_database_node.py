@@ -33,10 +33,10 @@ class PoseDatabaseNode:
         # Connect to MongoDB
         self._connect_to_mongo()
 
-        self.update_data_service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
-        self.query_loc_service = rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
-        self.get_obj_service = rospy.Service("getObjectPose", GetObjectPose, self.query_objects_by_robot_location_and_id )
-        self.cluster_service = rospy.Service("clustering",ClusterAndSample, self.cluster_and_sample_callback )
+        self.service = rospy.Service("update_data", UpdateDatabase, self.update_object_in_database)
+        self.service = rospy.Service("query_loc", QueryObjectLocations, self.query_free_objects )
+        self.service = rospy.Service("getObjectPose", GetObjectPose, self.query_objects_by_robot_location_and_id )
+        self.service = rospy.Service("clustering",ClusterAndSample, self.cluster_and_sample_callback )
         
 
         rospy.loginfo("Pose Database Node initialized and ready to receive requests.")
@@ -242,16 +242,26 @@ class PoseDatabaseNode:
         return ClusterAndSampleResponse(success=True, points=response_points, cluster_ids=cluster_ids)
     
     def query_objects_by_robot_location_and_id(self, req):
+
+        
         robot_location=req.robot_location
         object_id= req.objectId
+        
+        
+        pose = req.robot_location.pose
+        robot_location = {
+            "x": pose.position.x,
+            "y": pose.position.y,
+            "z": pose.position.z
+        }
+        object_id = req.objectId
+
         # Define the query
         query = {
-            "robot_location": {
-                "rx": {"$eq": robot_location["x"]},
-                "ry": {"$eq": robot_location["y"]},
-                "rz": {"$eq": robot_location["z"]},
-            },
-            "object_Id": object_id
+            "robot_location.x": {"$eq": robot_location["x"]},
+            "robot_location.y": {"$eq": robot_location["y"]},
+            "robot_location.z": {"$eq": robot_location["z"]},
+            "object_Id": {"$eq": object_id}
         }
 
         try:
