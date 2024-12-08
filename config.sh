@@ -11,7 +11,6 @@ LIST_OF_WSS=( \
 "$MR3D_HOME/nav_ws" \
 "$MR3D_HOME/patrolling_ws" \
 "$MR3D_HOME/exploration_ws" \
-# "$MR3D_HOME/pioneer_ws" \
 "$MR3D_HOME/jackal_ws" \
 "$MR3D_HOME/robot_perception_ws" \
 "$MR3D_HOME/task_processing_ws" \
