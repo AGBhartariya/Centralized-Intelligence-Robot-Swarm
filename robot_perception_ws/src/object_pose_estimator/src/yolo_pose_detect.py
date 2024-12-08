@@ -13,6 +13,7 @@ from ultralytics import YOLO
 from torch.cuda import is_available as device_check
 import ros_numpy
 import cv2
+import tf
 
 class ObjectDetectorPoseEstimator:
     def __init__(self):
@@ -123,6 +124,16 @@ class ObjectDetectorPoseEstimator:
         cv2.circle(visualized_image, (int(centroid[0]), int(centroid[1])), 5, (0, 0, 255), -1)
         return visualized_image
 
+    def transf(self,pose):
+        listener = tf.TransformListener()
+        try:
+            listener.waitForTransform("odom", "camera_optical_link", rospy.Time(0), rospy.Duration(4.0))
+            pose = listener.transformPose("odom", pose)
+            return pose
+        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
+            rospy.logerr("Transform failed: %s", e)
+            return None
+    
     def detect_and_estimate(self):
         if self.rgb_image is None:
             return
@@ -161,7 +172,7 @@ class ObjectDetectorPoseEstimator:
                             pose_msg.pose.orientation.y = q[1]
                             pose_msg.pose.orientation.z = q[2]
                             pose_msg.pose.orientation.w = q[3]
-                            detect_msg.pose = pose_msg
+                            detect_msg.pose = self.transf(pose_msg)
 
                             self.detected_object_pub.publish(detect_msg)
 
