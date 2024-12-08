@@ -50,8 +50,8 @@ class WaypointPublisher:
         self.cancel_current_task()
 
         # Publish the waypoint to /ugv1/planner/waypoints/server/update
-        # rospy.loginfo(f"Publishing waypoint to /ugv1/planner/waypoints/server: {waypoint}")
-        # self.waypoint_pub.publish(waypoint)
+        rospy.loginfo(f"Publishing waypoint to /ugv1/planner/waypoints/server: {waypoint}")
+        self.waypoint_pub.publish(waypoint)
 
         # Publish a task for navigation to the waypoint
         rospy.loginfo(f"Publishing waypoint to /ugv1/planner/tasks/append for navigation: {waypoint}")

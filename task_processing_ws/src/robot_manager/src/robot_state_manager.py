@@ -119,7 +119,8 @@ class RobotStateManager:
             response = clusters(request)
             return response.points
         except:
-            return 'error occured in service'
+            rospy.logerr('Error occured in clustering service')
+            return []
 
     def calculate_cost(self, robot_position, goal_position, robot_id):
         # Compute Euclidean distance as the cost
@@ -127,7 +128,7 @@ class RobotStateManager:
         try:
             cost_path = rospy.ServiceProxy(f'/{robot_id}/cost_path', GetCostPath)
             request = GetCostPathRequest()
-            goal_point=goal_position.pose.position
+            goal_point=goal_position
             request.task.waypoints = [robot_position, goal_point] 
             request.task.header.frame_id='odom'
             request.task.segment_count=1

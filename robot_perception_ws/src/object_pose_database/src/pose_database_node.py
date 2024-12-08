@@ -3,7 +3,7 @@
 import rospy
 from pymongo import MongoClient
 from pymongo.errors import OperationFailure
-from geometry_msgs.msg import Pose, PoseStamped, Point
+from geometry_msgs.msg import Point
 from std_msgs.msg import Int32
 from object_pose_database.msg import DetectObject
 from object_pose_database.srv import UpdateDatabase

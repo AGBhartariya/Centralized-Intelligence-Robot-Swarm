@@ -4,5 +4,5 @@ int32 num_points_per_cluster
 #Response
 bool success
 string message
-int32[] points  
+geometry_msgs/Point[] points  
 int32[] cluster_ids   
