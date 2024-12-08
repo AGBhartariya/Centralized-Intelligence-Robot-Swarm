@@ -70,7 +70,7 @@ class RobotStateNode:
         )
 
         self.task_pub_server = rospy.Publisher(
-            f"/planner/waypoints/server", Point, queue_size=10
+            f"planner/waypoints/server", Point, queue_size=10
         )
 
 
@@ -506,8 +506,8 @@ class RobotStateNode:
         task_msg.segment_count = 1  # Only one waypoint in this task
         task_msg.type = 0  # Either normal or cyclic type
         task_msg.waypoints = [waypoint_msg]
-        self.task_pub.publish(task_msg)
         self.task_pub_server.publish(waypoint_msg)
+        self.task_pub.publish(task_msg)
 
     def is_within_tolerance(self, location: PoseStamped):
         try:
