@@ -117,11 +117,11 @@ class RobotStateManager:
             for _ in range(num_points)
         ]
 
-    def calculate_cost(self, robot_position, goal_position):
+    def calculate_cost(self, robot_position, goal_position, robot_id):
         # Compute Euclidean distance as the cost
         rospy.wait_for_service('cost_path')
         try:
-            cost_path = rospy.ServiceProxy('/trajectory_control_msgs/cost_path', GetCostPath)
+            cost_path = rospy.ServiceProxy(f'/{robot_id}/cost_path', GetCostPath)
             request = GetCostPathRequest()
             goal_point=goal_position.pose.position
             request.task.waypoints = [robot_position, goal_point] 
@@ -197,7 +197,7 @@ class RobotStateManager:
         cost_matrix = np.zeros((len(free_robots), len(sampled_points)))
         for i, robot in enumerate(free_robots):
             for j, point in enumerate(sampled_points):
-                cost_matrix[i][j] = self.calculate_cost(robot_positions[robot], point)
+                cost_matrix[i][j] = self.calculate_cost(robot_positions[robot], point, robot)
 
         # Use Hungarian Algorithm to find the optimal assignment
         robot_indices, point_indices = linear_sum_assignment(cost_matrix)
