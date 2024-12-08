@@ -15,6 +15,7 @@ catkin_package(
 catkin_install_python(PROGRAMS
   src/task_assigner.py
   src/task_publisher.py
+  src/task_publisher_LLM_GUI.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -1,97 +1,48 @@
 #!/usr/bin/env python3
 import sys
 import rospy
-import google.generativeai as genai
-import ast
+import socket
+import json
+import threading
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, 
                              QWidget, QTabWidget, QLabel, QLineEdit, QComboBox, 
-                             QTextEdit, QPushButton, QMessageBox, QGridLayout, 
-                             QRadioButton, QButtonGroup)
+                             QTextEdit, QPushButton, QMessageBox, QGridLayout)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from robot_manager.msg import Task
 from geometry_msgs.msg import PoseStamped
-import threading
 
-class GeminiTaskConverter(QThread):
-    """Background thread for converting NLP to task using Gemini AI"""
+class GeminiTaskConverterClient(QThread):
+    """Background thread for converting NLP to task using Gemini AI socket server"""
     task_converted = pyqtSignal(list)
     error_occurred = pyqtSignal(str)
 
     def __init__(self, user_prompt):
         super().__init__()
         self.user_prompt = user_prompt
-        # Configure Gemini AI
-        genai.configure(api_key="AIzaSyBNty03zfPQ2hF1cfYe8-dEvk7fop3K37I")
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        self.host = 'localhost'
+        self.port = 65432
 
     def run(self):
         try:
-            # System prompt for task conversion (same as previous implementation)
-            system_prompt = f"""
-This is my user prompt {self.user_prompt}. Convert this prompt into a Task message according to the following rules:
-
----
-### Task Assignment Format:
-
-Tasks will follow this structure:
-
-[p, [x1, x2], [x3, x4]]
-
-Where:
-
-- **p**: Integer priority (lower priority value -> higher the priority). Managed by a **min-heap** implementation.
-
-- **x1**: Task type (integer), as defined in the Task Types section below.
-
-- **x2**: Task object or target id, such as an object type, category, or descriptor.
-
-- **x3** and **x4**: Cartesian coordinate locations. Each coordinate includes x, y, and z components.
-
-    - Use **0** value for any location that is irrelevant.
-
----
-
-### Task Types:
-
-1. **Bring Object:**  
-   **x1 = 1**  
-   **Description:** Bring an object of type **x2** to a specific location **x4** (specific location of the object is'nt given).
-
-2. **Inspect/Interact:**  
-   **x1 = 2**  
-   **Description:** Interact with or inspect an object of type **x2** at location **x3**.
-
-3. **Move Object:**  
-   **x1 = 3**  
-   **Description:** Move an object of type **x2** from one location **x3** to another **x4**.
-
-4. **Find Object:**  
-   **x1 = 4**  
-   **Description:** Locate an object of type **x2**.  
-   **Special Note:** This is a specific case of task type 2, but without a fixed location to bring the object (just locating).
-
-5. **Go to Location:**
-   **x1 = 5**
-   **Description:** Move to a specific location **x4**.
-   **Special Note:** This task type is used for navigation to a specified place and in invariant of object type
----
-
-### Additional Notes:
-
-- If **priority** is not mentioned in the input prompt, assume the default value of **1**.
-- For Cartesian coordinates, include **all three dimensions (x, y, z)** explicitly, even if one or more dimensions are **0**.
-- If **x3** or **x4** is irrelevant, explicitly set it to (0, 0, 0).
-- Ensure that **x2** is derived directly from the user prompt (e.g., "package," "fire extinguisher") and then put in its encoded form/label.
-  The objects of interest with their label are listed above.
-
----
-
-ONLY OUTPUT THE TASK MESSAGE AND NOTHING ELSE.
-"""
-            response = self.model.generate_content(system_prompt)
-            # Safely evaluate the response as a list
-            task_list = ast.literal_eval(response.text)
-            self.task_converted.emit(task_list)
+            # Create socket connection
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as client_socket:
+                client_socket.connect((self.host, self.port))
+                
+                # Send user prompt
+                client_socket.send(self.user_prompt.encode('utf-8'))
+                
+                # Receive response
+                response = client_socket.recv(1024).decode('utf-8')
+                
+                # Parse response
+                task_list = json.loads(response)
+                
+                # Check for errors in response
+                if isinstance(task_list, dict) and 'error' in task_list:
+                    self.error_occurred.emit(task_list['error'])
+                else:
+                    self.task_converted.emit(task_list)
+        
         except Exception as e:
             self.error_occurred.emit(str(e))
 
@@ -225,14 +176,14 @@ class TaskPublisherGUI(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def convert_nlp_task(self):
-        """Convert NLP to task using Gemini AI"""
+        """Convert NLP to task using Gemini AI socket server"""
         user_prompt = self.nlp_input.text().strip()
         if not user_prompt:
             QMessageBox.warning(self, "Input Error", "Please enter a task description.")
             return
         
         # Start background thread for task conversion
-        self.nlp_thread = GeminiTaskConverter(user_prompt)
+        self.nlp_thread = GeminiTaskConverterClient(user_prompt)
         self.nlp_thread.task_converted.connect(self.handle_nlp_task_conversion)
         self.nlp_thread.error_occurred.connect(self.handle_nlp_conversion_error)
         
@@ -244,6 +195,7 @@ class TaskPublisherGUI(QMainWindow):
         """Handle successful NLP to task conversion"""
         try:
             # Create task from list
+            rospy.loginfo(f"Generated task {task_list}")
             task = self.create_task_from_list(task_list)
             
             if task:
@@ -297,6 +249,12 @@ class TaskPublisherGUI(QMainWindow):
             x4.pose.position.z = task_list[2][1][2]
         
         # Set orientation to unit quaternion
+        x3.header.stamp = rospy.Time.now()
+        x3.header.frame_id = "map"
+        
+        x4.header.stamp = rospy.Time.now()
+        x4.header.frame_id = "map"
+        
         x3.pose.orientation.w = 1
         x4.pose.orientation.w = 1
         
@@ -331,6 +289,12 @@ class TaskPublisherGUI(QMainWindow):
             dest_loc = list(map(float, self.dest_loc_input.text().split()))
             if len(dest_loc) == 3:
                 x4.pose.position.x, x4.pose.position.y, x4.pose.position.z = dest_loc
+
+            x3.header.stamp = rospy.Time.now()
+            x3.header.frame_id = "map"
+            
+            x4.header.stamp = rospy.Time.now()
+            x4.header.frame_id = "map"
             
             # Set orientation to unit quaternion
             x3.pose.orientation.w = 1
