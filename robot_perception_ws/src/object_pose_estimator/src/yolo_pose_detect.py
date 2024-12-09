@@ -27,7 +27,8 @@ class ObjectDetectorPoseEstimator:
         self.model = YOLO("yolo11n.pt")  # Load pretrained YOLO model
         device = "cuda" if device_check() else "cpu"
         self.model.to(device) 
-
+        rospy.loginfo(f"Running yolo on {device}")
+        
         # Utilities
         self.bridge = CvBridge()
         self.rgb_image = None

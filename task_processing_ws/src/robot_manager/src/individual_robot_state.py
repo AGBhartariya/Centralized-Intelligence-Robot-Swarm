@@ -540,8 +540,8 @@ class RobotStateNode:
 
     def start_rotation(self):
         cmd = Twist()
-        cmd.angular.z = 0.5
-        rate = rospy.Rate(1)
+        cmd.angular.z = 1
+        rate = rospy.Rate(0.5)
         for _ in range(10):
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
