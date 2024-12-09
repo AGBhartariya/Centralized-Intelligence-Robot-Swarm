@@ -121,7 +121,7 @@ fi
 
 
 # check if we want to set the world from input and override
-export WORLD_NAME_FROM_INPUT=$1
+export WORLD_NAME_FROM_INPUT=$2
 if [[ -n "$WORLD_NAME_FROM_INPUT" ]]; then 
     echo "setting world from input"
     WORLD_NAME=$WORLD_NAME_FROM_INPUT    
@@ -130,7 +130,7 @@ echo "WORLD_NAME: $WORLD_NAME"
 
 
 # check if we set number of robots
-export NUM_ROBOTS_INPUT=$2
+export NUM_ROBOTS_INPUT=$1
 if [[ -n "$NUM_ROBOTS_INPUT" ]]; then
     echo "set NUM_ROBOTS_INPUT: $NUM_ROBOTS_INPUT"
     NUM_ROBOTS=$NUM_ROBOTS_INPUT
