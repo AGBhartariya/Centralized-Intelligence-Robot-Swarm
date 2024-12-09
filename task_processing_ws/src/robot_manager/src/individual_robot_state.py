@@ -114,7 +114,7 @@ class RobotStateNode:
         ):
             self.acquired_object = True
             self.update_database(
-                self.current_object, self.current_object_pose, "free"
+                self.current_object, self.current_object_pose, "free", flag=False
             )
             self.current_object_pose = pose
             (trans, rot) = self.tf_listener.lookupTransform(
@@ -546,18 +546,20 @@ class RobotStateNode:
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
 
-    def update_database(self, task_object, pose, status):
+    def update_database(self, task_object, pose, status, flag=True):
         """
         Database update logic.
         """
         rospy.wait_for_service('/update_data')
         rospy.loginfo("Updating db")
         try:
-            update_data = rospy.ServiceProxy('/object_pose_database/update_data', UpdateDatabase)
+            update_data = rospy.ServiceProxy('/update_data', UpdateDatabase)
             request = UpdateDatabaseRequest()
             request.task_object = task_object
             request.status = status
             request.pose = pose
+            request.robot_id = self.namespace
+            request.flag = flag
             response = update_data(request)
             return response
         except rospy.ServiceException as e:

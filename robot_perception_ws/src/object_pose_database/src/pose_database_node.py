@@ -6,7 +6,7 @@ from pymongo.errors import OperationFailure
 from geometry_msgs.msg import Point, PoseStamped
 from std_msgs.msg import Int32
 from object_pose_database.msg import DetectObject
-from object_pose_database.srv import UpdateDatabase
+from object_pose_database.srv import UpdateDatabase, UpdateDatabaseRequest
 from object_pose_database.srv import QueryObjectLocations 
 from sklearn.cluster import KMeans
 from random import sample
@@ -15,7 +15,7 @@ from collections import defaultdict
 from object_pose_database.srv import ClusterAndSample, ClusterAndSampleResponse
 import math
 from object_pose_database.srv import GetObjectPose
-
+from bson import ObjectId
 class PoseDatabaseNode:
     def __init__(self):
         # Initialize the ROS node
@@ -29,7 +29,7 @@ class PoseDatabaseNode:
         # Tolerance and epsilon
         self.tolerance = rospy.get_param("~tolerance", 0.1) 
         self.epsilon = rospy.get_param("~epsilon", 0.5)
-
+        self.confidence = rospy.get_param("~confidence", 0.5)
         # Connect to MongoDB
         self._connect_to_mongo()
 
@@ -69,10 +69,10 @@ class PoseDatabaseNode:
             data_sub = rospy.Subscriber(topic_name, DetectObject, self.callback, callback_args=i)
             subscribers.append(data_sub)
     
-    def callback(self, msg: DetectObject, subscriber_id):
+    def callback(self, msg: DetectObject, subscriber_id: str):
         self.handle_update_pose(msg)
 
-    def handle_update_pose(self, data):
+    def handle_update_pose(self, data: DetectObject):
         """Callback for the UpdatePose service."""
         rospy.loginfo(f"Received update request for object")
 
@@ -81,27 +81,30 @@ class PoseDatabaseNode:
             "object_Id": data.objectId,
             "position": {
                 "type": "Point",
-                "coordinates": [
-                    data.pose.pose.position.x,
-                    data.pose.pose.position.y,
-                    data.pose.pose.position.z
-                ]
+                "coordinates": {
+                    "x": data.pose.pose.position.x,
+                    "y" :data.pose.pose.position.y,
+                    "z" :data.pose.pose.position.z,
+                }
             }
         }
         confidence_y = data.confidence
-        matching_objects = self.find_matching_objects(pose_dict["position"])
-
+        matching_objects = self.find_matching_objects(pose_dict["position"]["coordinates"])
+        if not matching_objects: 
+            req = UpdateDatabaseRequest(task_object=data.objectId, pose=data.pose , status="free")    
+            self.update_object_in_database(req, confidence=data.confidence)
         for obj in matching_objects:
             obj_pose = obj.get("position")
-            distance = self.euclidean_distance(pose_dict["position"], obj_pose)
+            distance = self.euclidean_distance(pose_dict["position"]["coordinates"], obj_pose)
 
             if distance < self.epsilon:
-                    confidence_z = obj.get("confidence", 0.8)
+                    confidence_z = obj.get("confidence", self.confidence)
                     if confidence_y > confidence_z:
                         rospy.loginfo(f"Updating object {data.objectId} in database with new pose and confidence.")
                         self.update_object_pose(obj, pose_dict, confidence_y)
+                        return
 
-    def find_matching_objects(self, new_position):
+    def find_matching_objects(self, new_position: dict):
             query = {
                 "position": {
                     "$near": {
@@ -115,7 +118,6 @@ class PoseDatabaseNode:
             }
             return list(self.collection.find(query))
     
-        # Insert or update the pose in the database
     def euclidean_distance(self, pose1, pose2):
             x1, y1, z1 = pose1["x"], pose1["y"], pose1["z"]
             x2, y2, z2 = pose2["x"], pose2["y"], pose2["z"]
@@ -123,15 +125,14 @@ class PoseDatabaseNode:
     
     def update_object_pose(self, obj, new_pose, confidence_y):
         """Update the pose and confidence of the object in the database."""
-        query = {"object_id": obj["object_id"]}  
+        query = {"object_Id": obj["object_Id"],"_id":obj["_id"]}  
         new_position = {
         "type": "Point",
-        "coordinates": [new_pose["position"]["x"], new_pose["position"]["y"], new_pose["position"]["z"]]
+        "coordinates": [new_pose["position"]["coordinates"]["x"], new_pose["position"]["coordinates"]["y"], new_pose["position"]["coordinates"]["z"]]
         }
         update_data = {
             "$set": {
                 "position": new_position,
-                "orientation": new_pose["orientation"],
                 "confidence": confidence_y,
             }
         }
@@ -145,24 +146,65 @@ class PoseDatabaseNode:
         except Exception as e:
             rospy.logerr(f"Failed to update pose in the database: {e}")
 
-    def update_object_in_database(self, req):
+    def pose_stamped_to_dict(self, pose_stamped: PoseStamped):
+        """
+        Converts a PoseStamped message to a dictionary.
+        """
+        return {
+            "header": {
+                "seq": pose_stamped.header.seq,
+                "stamp": {
+                    "secs": pose_stamped.header.stamp.secs,
+                    "nsecs": pose_stamped.header.stamp.nsecs
+                },
+                "frame_id": pose_stamped.header.frame_id
+            },
+            "position": {
+                    "x": pose_stamped.pose.position.x,
+                    "y": pose_stamped.pose.position.y,
+                    "z": pose_stamped.pose.position.z
+                },
+            "orientation": {
+                    "x": pose_stamped.pose.orientation.x,
+                    "y": pose_stamped.pose.orientation.y,
+                    "z": pose_stamped.pose.orientation.z,
+                    "w": pose_stamped.pose.orientation.w
+                }
+            }
+        
+
+    def update_object_in_database(self, req, confidence=None):
         task_object=req.task_object
-        pose= req.pose
+        pose = self.pose_stamped_to_dict(req.pose)
+        pose_data = {
+            "position": {
+                "x": pose["position"]["x"],
+                "y": pose["position"]["y"],
+                "z": pose["position"]["z"]
+            },
+            }
         status=req.status
+        confidence = self.confidence if confidence is None else confidence
+
+        query = {"object_Id": task_object} 
+        
         if status == "free":
             data = {
                 "object_Id": task_object,
-                "position": pose,
+                "position": pose_data["position"],
                 "status": status,
-                "confidence": 0.8
+                "confidence": req.confidence
             }
-            insert_doc = self.collection.insert_one(data)
-            return f"Inserted Document ID: {insert_doc.inserted_id}"
+            update = {
+           "$set": data
+        }
+            result = self.database.collection.update_one(query, update, upsert=True)
+            return 
 
         elif status == "occupied":
             query = {
                 "object_Id": task_object,
-                "position": pose,
+                "position": pose_data["position"],
                 "status": "free"
             }
             update_data = {
@@ -179,7 +221,7 @@ class PoseDatabaseNode:
         elif status == "remove":
             query = {
                 "object_Id": task_object,
-                "position": pose
+                "position": pose_data["position"]
             }
             result = self.collection.delete_one(query)
             if result.deleted_count > 0:
@@ -190,13 +232,13 @@ class PoseDatabaseNode:
     def query_free_objects(self, req):
         task_object=req.objectType
         query = {
-            "object_id": task_object,
+            "object_Id": task_object,
             "status": "free"
         }
 
         try:
         # Perform the query
-            results = list(self.collection.find(query, {"object_id": 0, "position": 1}))
+            results = list(self.collection.find(query, {"object_Id": 0, "position": 1}))
             rospy.loginfo(f"Found {len(results)} matching documents with status='free' for object ID {task_object}.")
             return results
         except Exception as e:
