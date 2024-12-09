@@ -31,10 +31,10 @@ class RobotStateNode:
 
         self.battery_threshold = 10
         self.battery_level = 100
-        self.retry_attempts = 8  # Maximum retries for a task
+        self.retry_attempts = 10  # Maximum retries for a task
         self.timeout_duration = 15  # Timeout duration in seconds
         self.tolerance = 0.5  # Distance tolerance to consider "reached"
-        self.rotation_attempts = 5  # Number of rotations at the location
+        self.rotation_attempts = 10 # Number of rotations at the location
 
         self.task_sub = rospy.Subscriber(
             f"start_task", Task, self.execute_task
@@ -541,7 +541,7 @@ class RobotStateNode:
     def start_rotation(self):
         cmd = Twist()
         cmd.angular.z = 0.5
-        rate = rospy.Rate(10)
+        rate = rospy.Rate(1)
         for _ in range(10):
             self.cmd_vel_pub.publish(cmd)
             rate.sleep()
