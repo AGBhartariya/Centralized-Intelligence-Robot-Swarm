@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <launch>
-
+    <arg name="no_of_robots" default="2"/>
     <!-- Launch the Pose Database Node -->
     <node name="pose_database_node" pkg="object_pose_database" type="pose_database_node.py" output="screen" respawn="true">
         <!-- MongoDB connection parameters -->
@@ -13,7 +13,7 @@
         <param name="epsilon" value="0.5"/>
 
         <!-- Number of robots -->
-        <param name="no_of_robots" value="4"/>
+        <param name="no_of_robots" value="$(arg no_of_robots)"/>
     </node>
 
 </launch>

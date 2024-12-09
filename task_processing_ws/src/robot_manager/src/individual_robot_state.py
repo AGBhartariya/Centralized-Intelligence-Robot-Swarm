@@ -45,7 +45,7 @@ class RobotStateNode:
         self.patrol_sub = rospy.Subscriber(
             f"patrol_waypoint", Point, self.go_to_patrol_waypoint
         )
-        self.isPatrolsub = rospy.Subscriber("isPatrolling", Bool, self.isPatroCallback)
+        self.isPatrolsub = rospy.Subscriber("/isPatrolling", Bool, self.isPatroCallback)
         self.detect_object_sub = rospy.Subscriber(
             f"detect_object",
             DetectObject,
