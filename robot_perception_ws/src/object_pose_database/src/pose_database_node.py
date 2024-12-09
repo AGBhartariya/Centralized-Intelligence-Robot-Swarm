@@ -123,10 +123,14 @@ class PoseDatabaseNode:
     
     def update_object_pose(self, obj, new_pose, confidence_y):
         """Update the pose and confidence of the object in the database."""
-        query = {"_id": obj["_id"]}  # Query using the object ID
+        query = {"object_id": obj["object_id"]}  
+        new_position = {
+        "type": "Point",
+        "coordinates": [new_pose["position"]["x"], new_pose["position"]["y"], new_pose["position"]["z"]]
+        }
         update_data = {
             "$set": {
-                "position": new_pose["position"],
+                "position": new_position,
                 "orientation": new_pose["orientation"],
                 "confidence": confidence_y,
             }
@@ -192,7 +196,7 @@ class PoseDatabaseNode:
 
         try:
         # Perform the query
-            results = list(self.collection.find(query, {"_id": 0, "position": 1}))
+            results = list(self.collection.find(query, {"object_id": 0, "position": 1}))
             rospy.loginfo(f"Found {len(results)} matching documents with status='free' for object ID {task_object}.")
             return results
         except Exception as e:
