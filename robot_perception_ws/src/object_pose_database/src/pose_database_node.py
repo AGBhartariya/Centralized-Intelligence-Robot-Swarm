@@ -89,11 +89,11 @@ class PoseDatabaseNode:
             obj_pose = obj.get("position")
             distance = self.euclidean_distance(pose_dict["position"], obj_pose)
 
-        if distance < self.epsilon:
-                confidence_z = obj.get("confidence", 0.8)
-                if confidence_y > confidence_z:
-                    rospy.loginfo(f"Updating object {data.objectId} in database with new pose and confidence.")
-                    self.update_object_pose(obj, pose_dict, confidence_y)
+            if distance < self.epsilon:
+                    confidence_z = obj.get("confidence", 0.8)
+                    if confidence_y > confidence_z:
+                        rospy.loginfo(f"Updating object {data.objectId} in database with new pose and confidence.")
+                        self.update_object_pose(obj, pose_dict, confidence_y)
 
     def find_matching_objects(self, new_position):
             query = {
