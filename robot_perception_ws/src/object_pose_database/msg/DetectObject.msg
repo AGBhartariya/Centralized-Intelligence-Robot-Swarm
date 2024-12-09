@@ -1,3 +1,3 @@
 int32 objectId
-int32 confidence
+float32 confidence
 geometry_msgs/PoseStamped pose

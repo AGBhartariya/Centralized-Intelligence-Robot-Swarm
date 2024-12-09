@@ -183,7 +183,7 @@ class ObjectDetectorPoseEstimator:
                             # Publish DetectObject message
                             detect_msg = DetectObject()
                             detect_msg.objectId = class_idx
-                            detect_msg.confidence = int(confidence * 100)
+                            detect_msg.confidence = confidence
 
                             pose_msg = PoseStamped()
                             pose_msg.header.stamp = rospy.Time.now()

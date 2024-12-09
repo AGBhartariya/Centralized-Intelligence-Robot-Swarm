@@ -64,7 +64,7 @@ class PoseDatabaseNode:
 
     def create_subscribers(self, n):
         subscribers = []
-        for i in range(n):
+        for i in range(1, n+1):
             topic_name = f"/ugv{i}/detect_object"
             data_sub = rospy.Subscriber(topic_name, DetectObject, self.callback, callback_args=i)
             subscribers.append(data_sub)
