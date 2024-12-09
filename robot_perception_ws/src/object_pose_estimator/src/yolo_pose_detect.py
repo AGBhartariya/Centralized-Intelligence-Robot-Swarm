@@ -13,7 +13,8 @@ from ultralytics import YOLO
 from torch.cuda import is_available as device_check
 import ros_numpy
 import cv2
-import tf
+import tf2_ros
+import tf2_geometry_msgs
 
 class ObjectDetectorPoseEstimator:
     def __init__(self):
@@ -45,8 +46,12 @@ class ObjectDetectorPoseEstimator:
         self.image_pub = rospy.Publisher("detectedImage", Image, queue_size=10)
 
         # ROS parameters
-        self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.6)
+        self.confidence_threshold = rospy.get_param("~confidence_threshold", 0.5)
         self.visualize_detected_pose = rospy.get_param("~visualizeDetectedPose", True)
+
+        #Transforms
+        self.tf_buffer = tf2_ros.Buffer(rospy.Duration(10.0))  # Buffer cache timeout
+        self.tf_listener = tf2_ros.TransformListener(self.tf_buffer)
 
     def rgb_callback(self, msg):
         self.rgb_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
@@ -124,15 +129,31 @@ class ObjectDetectorPoseEstimator:
         cv2.circle(visualized_image, (int(centroid[0]), int(centroid[1])), 5, (0, 0, 255), -1)
         return visualized_image
 
-    def transf(self,pose):
-        listener = tf.TransformListener()
+    def transform_pose_stamped(self, input_pose, target_frame):
+        """
+        Transform a PoseStamped from its current frame to the target frame.
+        
+        :param input_pose: geometry_msgs/PoseStamped to be transformed
+        :param target_frame: String name of the target frame to transform to
+        :return: Transformed PoseStamped in the target frame
+        """
         try:
-            listener.waitForTransform("map", f"{self.namespace}/camera_optical_link", rospy.Time(0), rospy.Duration(4.0))
-            pose = listener.transformPose("map", pose)
-            return pose
-        except (tf.LookupException, tf.ConnectivityException, tf.ExtrapolationException) as e:
-            rospy.logerr("Transform failed: %s", e)
-            return PoseStamped()
+            # Ensure the transform is available
+            self.tf_buffer.can_transform(target_frame, input_pose.header.frame_id, 
+                                        input_pose.header.stamp, 
+                                        rospy.Duration(1.0))
+            
+            # Transform the pose
+            transformed_pose = self.tf_buffer.transform(input_pose, target_frame)
+            
+            return transformed_pose
+        
+        except (tf2_ros.LookupException, 
+                tf2_ros.ConnectivityException, 
+                tf2_ros.ExtrapolationException,
+                tf2_ros.buffer_interface.TypeException) as e:
+            rospy.logerr(f"TF2 Transform Error: {e}")
+            return None
     
     def detect_and_estimate(self):
         if self.rgb_image is None:
@@ -165,7 +186,7 @@ class ObjectDetectorPoseEstimator:
 
                             pose_msg = PoseStamped()
                             pose_msg.header.stamp = rospy.Time.now()
-                            pose_msg.header.frame_id = "camera_optical_link"
+                            pose_msg.header.frame_id = f"{self.namespace}/camera_optical_link"
                             pose_msg.pose.position.x = centroid[0]
                             pose_msg.pose.position.y = centroid[1]
                             pose_msg.pose.position.z = centroid[2]
@@ -173,8 +194,9 @@ class ObjectDetectorPoseEstimator:
                             pose_msg.pose.orientation.y = q[1]
                             pose_msg.pose.orientation.z = q[2]
                             pose_msg.pose.orientation.w = q[3]
-                            detect_msg.pose = self.transf(pose_msg)
+                            detect_msg.pose = self.transform_pose_stamped(pose_msg, "map")
 
+                            rospy.loginfo(f"Detected object info {detect_msg}")
                             self.detected_object_pub.publish(detect_msg)
 
                             # Visualize pose if parameter is true

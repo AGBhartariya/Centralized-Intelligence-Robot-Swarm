@@ -62,7 +62,7 @@ class PoseDatabaseNode:
     def create_subscribers(self, n):
         subscribers = []
         for i in range(n):
-            topic_name = f"/ugv{i}/detected_object"
+            topic_name = f"/ugv{i}/detect_object"
             data_sub = rospy.Subscriber(topic_name, DetectObject, self.callback, callback_args=i)
             subscribers.append(data_sub)
     
@@ -77,9 +77,9 @@ class PoseDatabaseNode:
         pose_dict = {
             "object_Id": data.objectId,
             "position": {
-                "x": data.pose.position.x,
-                "y": data.pose.position.y,
-                "z": data.pose.position.z
+                "x": data.pose.pose.position.x,
+                "y": data.pose.pose.position.y,
+                "z": data.pose.pose.position.z
             }
         }
         confidence_y = data.confidence

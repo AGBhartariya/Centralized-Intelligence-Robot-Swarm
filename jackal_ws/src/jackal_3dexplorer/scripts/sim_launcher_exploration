@@ -201,11 +201,11 @@ done
 sleep 1
 ########################################################################################################
 
-if [ $LAUNCH_EXPLORATION_AUTO -eq 1 ] 
-then
-    echo "starting exploration"
-    rostopic pub /expl_pause_topic std_msgs/Bool "data: false" &
-fi
+# if [ $LAUNCH_EXPLORATION_AUTO -eq 1 ] 
+# then
+#     echo "starting exploration"
+#     rostopic pub /expl_pause_topic std_msgs/Bool "data: false" &
+# fi
 
 if [[ -n "$MAX_SIMULATION_TIME" ]] 
 then
