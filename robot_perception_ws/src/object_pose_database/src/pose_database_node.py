@@ -52,6 +52,9 @@ class PoseDatabaseNode:
             self.db = self.client[self.database_name]
             self.collection = self.db[self.collection_name]
             rospy.loginfo(f"Connected to MongoDB at {self.mongo_uri}, using database: {self.database_name}.")
+        
+            self.collection.create_index([("position", "2dsphere")])
+            rospy.loginfo("Created 2dsphere index on 'position' field.")
         except ConnectionError as e:
             rospy.logerr(f"Failed to connect to MongoDB: {e}")
             raise
@@ -77,9 +80,12 @@ class PoseDatabaseNode:
         pose_dict = {
             "object_Id": data.objectId,
             "position": {
-                "x": data.pose.pose.position.x,
-                "y": data.pose.pose.position.y,
-                "z": data.pose.pose.position.z
+                "type": "Point",
+                "coordinates": [
+                    data.pose.pose.position.x,
+                    data.pose.pose.position.y,
+                    data.pose.pose.position.z
+                ]
             }
         }
         confidence_y = data.confidence
@@ -103,7 +109,7 @@ class PoseDatabaseNode:
                             "type": "Point",
                             "coordinates": [new_position["x"], new_position["y"], new_position["z"]]
                         },
-                        "$maxDistance": self.tolerance  # Set tolerance distance
+                        "$maxDistance": self.tolerance  
                     }
                 }
             }
