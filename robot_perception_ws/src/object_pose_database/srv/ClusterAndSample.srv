@@ -1,5 +1,5 @@
 #Request
-int32 num_points_per_cluster
+int32 num_points
 ---
 #Response
 bool success

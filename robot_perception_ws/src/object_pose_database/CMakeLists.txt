@@ -30,6 +30,7 @@ generate_messages(
 
 catkin_install_python(PROGRAMS
   src/pose_database_node.py
+  src/database.py
   DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 

@@ -10,14 +10,16 @@ from object_pose_database.msg import DetectObject
 
 class MongoDBInterface:
     def __init__(self):
-        # Initialize MongoDB connection
-        self.client = pymongo.MongoClient("localhost", 27017)
-        self.db = self.client.ros_workspace
-        self.collection = self.db.objects
-
         # Get parameters
-        self.tolerance = rospy.get_param("tolerance", 0.1)
-        self.default_confidence = rospy.get_param("default_confidence", 0.5)
+        self.tolerance = rospy.get_param("~tolerance", 0.1)
+        self.default_confidence = rospy.get_param("~default_confidence", 0.5)
+        self.database_name = rospy.get_param("~database_name", "world")
+        self.collection_name = rospy.get_param("~collection_name", "object")
+        self.epsilon = rospy.get_param("~epsilon", 0.5)
+        # Initialize MongoDB connection
+        self.client = pymongo.MongoClient("mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment")
+        self.db = self.client[self.database_name]
+        self.collection = self.db[self.collection_name]
 
     def euclidean_distance(self, pose1, pose2):
         return math.sqrt((pose1.position.x - pose2.position.x)**2 +
@@ -48,8 +50,8 @@ class MongoDBInterface:
 
         if req.status == "free" and req.flag:
             listener = tf.TransformListener()
-            listener.waitForTransform("map", req.robot_id, rospy.Time(0), rospy.Duration(4.0))
-            (trans, _) = listener.lookupTransform("map", req.robot_id, rospy.Time(0))
+            listener.waitForTransform("map", f"{req.robot_id}/base_link", rospy.Time(0), rospy.Duration(4.0))
+            (trans, _) = listener.lookupTransform("map", f"{req.robot_id}/base_link", rospy.Time(0))
             robot_pose = {"x": trans[0], "y": trans[1], "z": trans[2]}
             new_object = {
                 "label": req.task_object,
@@ -83,7 +85,7 @@ class MongoDBInterface:
 
     def get_object_pose(self, req: GetObjectPoseRequest):
         rospy.loginfo("Received get_object_pose request.")
-        query = {"label": req.objectId}
+        query = {"label": req.objectId, "status": "free"}
         objects = self.collection.find(query)
 
         for obj in objects:
@@ -91,11 +93,12 @@ class MongoDBInterface:
             robot_pose.pose.position.x = obj["robot_pose_at_detection"]["x"]
             robot_pose.pose.position.y = obj["robot_pose_at_detection"]["y"]
             robot_pose.pose.position.z = obj["robot_pose_at_detection"]["z"]
-            if self.euclidean_distance(robot_pose.pose, req.robot_location.pose) < self.tolerance:
+            if self.euclidean_distance(robot_pose.pose, req.robot_location.pose) < self.epsilon:
                 pose = PoseStamped()
                 pose.pose.position.x = obj["object_pose"]["x"]
                 pose.pose.position.y = obj["object_pose"]["y"]
                 pose.pose.position.z = obj["object_pose"]["z"]
+                pose.header.frame_id = "map"
                 rospy.loginfo("Returning object pose.")
                 return GetObjectPoseResponse(pose)
 
@@ -134,6 +137,19 @@ class MongoDBInterface:
         query = {"label": msg.objectId}
         objects = self.collection.find(query)
 
+        listener = tf.TransformListener()
+        listener.waitForTransform("map", f"{namespace}/base_link", rospy.Time(0), rospy.Duration(4.0))
+        (trans, _) = listener.lookupTransform("map", f"{namespace}/base_link", rospy.Time(0))
+        robot_pose = {"x": trans[0], "y": trans[1], "z": trans[2]}
+
+        object = {
+            "label": msg.objectId,
+            "object_pose": {"x": msg.pose.pose.position.x, "y": msg.pose.pose.position.y, "z": msg.pose.pose.position.z},
+            "robot_pose_at_detection": robot_pose,
+            "confidence": msg.confidence,
+            "status": "free"
+        }
+
         for obj in objects:
             obj_pose = PoseStamped()
             obj_pose.pose.position.x = obj["object_pose"]["x"]
@@ -143,24 +159,12 @@ class MongoDBInterface:
                 if msg.confidence > obj["confidence"]:
                     self.collection.update_one(
                         {"_id": obj["_id"]},
-                        {"$set": {"confidence": msg.confidence}}
+                        {"$set": object}
                     )
                     rospy.loginfo("Updated object confidence in database.")
                 return
 
-        listener = tf.TransformListener()
-        listener.waitForTransform("map", namespace, rospy.Time(0), rospy.Duration(4.0))
-        (trans, _) = listener.lookupTransform("map", namespace, rospy.Time(0))
-        robot_pose = {"x": trans[0], "y": trans[1], "z": trans[2]}
-
-        new_object = {
-            "label": msg.objectId,
-            "object_pose": {"x": msg.pose.pose.position.x, "y": msg.pose.pose.position.y, "z": msg.pose.pose.position.z},
-            "robot_pose_at_detection": robot_pose,
-            "confidence": msg.confidence,
-            "status": "free"
-        }
-        self.collection.insert_one(new_object)
+        self.collection.insert_one(object)
         rospy.loginfo("New object added to database from detect_object message.")
 
 
@@ -173,9 +177,9 @@ if __name__ == "__main__":
     rospy.Service("/getObjectPose", GetObjectPose, mongodb_interface.get_object_pose)
     rospy.Service("/clustering", ClusterAndSample, mongodb_interface.clustering)
 
-    num_robots = rospy.get_param("num_robots", 1)
+    num_robots = rospy.get_param("~no_of_robots", 1)
     for i in range(1, num_robots + 1):
         rospy.Subscriber(f"/ugv{i}/detect_object", DetectObject, mongodb_interface.detect_object_callback, callback_args=f"ugv{i}")
 
-    rospy.loginfo("MongoDB ROS node is up and running.")
+    rospy.loginfo("MongoDB ROS node is up and running for {num_robots}.")
     rospy.spin()

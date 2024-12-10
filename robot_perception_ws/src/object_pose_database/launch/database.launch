@@ -2,16 +2,15 @@
 <launch>
     <arg name="no_of_robots" default="2"/>
     <!-- Launch the Pose Database Node -->
-    <node name="pose_database_node" pkg="object_pose_database" type="pose_database_node.py" output="screen" respawn="true">
+    <node name="pose_database_node" pkg="object_pose_database" type="database.py" output="screen" respawn="true">
         <!-- MongoDB connection parameters -->
         <!-- <param name="mongo_uri" value="mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment"/> -->
         <param name="database_name" value="world"/>
         <param name="collection_name" value="object"/>
-
+        <param name="default_confidence" value="0.5"/>
         <!-- Tolerance and epsilon parameters -->
-        <param name="tolerance" value="0.1"/>
+        <param name="tolerance" value="0.3"/>
         <param name="epsilon" value="0.5"/>
-
         <!-- Number of robots -->
         <param name="no_of_robots" value="$(arg no_of_robots)"/>
     </node>
