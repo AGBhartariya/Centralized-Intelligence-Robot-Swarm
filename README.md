@@ -75,6 +75,32 @@ If you do not have Ubuntu 20.04, you can use [rosdocker](https://github.com/luig
 
 Refer to [INSTALL.md](./INSTALL.md) if you need a manual installation. 
 
+## Additional Dependencies
+
+The following dependencies are required to run the 3DMR framework:
+
+- **`ros_numpy`**: For efficient handling of ROS messages and NumPy arrays.
+- **`YOLOv11`**: For object detection in the Robot Perception Node.
+- **`pymongo` and `MongoDB`**: For managing the shared database of detected objects and tasks.
+- **Conda Environment**: A Conda environment with Python >3.9 is required, including the `google-generativeai` module.
+
+### Running the Workspace
+
+After sourcing the workspace using `$ source source_all.bash`, the following commands should be executed in four separate terminals:
+
+1. **Launch Simulation for Exploration**:  `rosrun jackal_3dexplorer sim_launcher_exploration <NUM_ROBOTS>  ` 
+
+2. **Run Task Management Script**:  `bash task.sh <NUM_ROBOTS>`
+
+3. **Start Task Publisher with GUI**:  `rosrun task_manager task_publisher_LLM_GUI.py`
+
+4. **Activate Conda Environment and Run Task Processing**:  `conda activate <env_name> python task_processing_ws/src/task_manager/src/geminiTaskSocket.py`
+
+```typescript
+Replace `<NUM_ROBOTS>` with the desired number of robots and `<env_name>` with the name of your Conda environment.
+```
+
+
 ----
 ## Repo organization
 
