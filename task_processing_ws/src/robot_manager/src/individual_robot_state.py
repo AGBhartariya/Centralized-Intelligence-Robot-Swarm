@@ -47,7 +47,7 @@ class RobotStateNode:
         )
         self.isPatrolsub = rospy.Subscriber("/isPatrolling", Bool, self.isPatroCallback)
         self.detect_object_sub = rospy.Subscriber(
-            f"detect_object",
+            f"detect_object_ugv",
             DetectObject,
             self.detect_object_callback,
         )
@@ -105,12 +105,13 @@ class RobotStateNode:
         """
         object_id = msg.objectId
         pose = msg.pose
-
+        status = msg.status
+        rospy.loginfo(f"Detected object {object_id} with status {status}")
         # Update or add the detected object in the database
         if (
             self.current_object == object_id
             and (self.task_type in [1, 4] or self.finding)
-            and not self.acquired_object
+            and not self.acquired_object and self.check_occupied(pose, status)
         ):
             self.acquired_object = True
             self.update_database(
@@ -130,7 +131,16 @@ class RobotStateNode:
                 self.current_object, self.current_object_pose, "occupied"
             )
             
-
+    def check_occupied(self, pose: PoseStamped, status: str):
+        if status == "free":
+            return True
+        distance =  (pose.pose.position.x - self.current_object_pose.pose.position.x) ** 2 + \
+                    (pose.pose.position.y - self.current_object_pose.pose.position.y) ** 2 + \
+                    (pose.pose.position.z - self.current_object_pose.pose.position.z) ** 2
+        if distance < rospy.get_param("/tolerance", 0.1):
+            return True
+        return False
+    
     def return_to_charging_station(self):
         """
         Navigate the robot back to a predefined charging station.

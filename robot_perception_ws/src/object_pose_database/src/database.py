@@ -21,6 +21,17 @@ class MongoDBInterface:
         self.db = self.client[self.database_name]
         self.collection = self.db[self.collection_name]
 
+        rospy.Service("/update_data", UpdateDatabase, self.update_data)
+        rospy.Service("/query_loc", QueryObjectLocations, self.query_loc)
+        rospy.Service("/getObjectPose", GetObjectPose, self.get_object_pose)
+        rospy.Service("/clustering", ClusterAndSample, self.clustering)
+
+        self.num_robots = rospy.get_param("~no_of_robots", 1)
+        for i in range(1, self.num_robots + 1):
+            rospy.Subscriber(f"/ugv{i}/detect_object", DetectObject, self.detect_object_callback, callback_args=f"ugv{i}")
+
+        rospy.loginfo("MongoDB ROS node is up and running for {num_robots}.")
+
     def euclidean_distance(self, pose1, pose2):
         return math.sqrt((pose1.position.x - pose2.position.x)**2 +
                          (pose1.position.y - pose2.position.y)**2 +
@@ -163,24 +174,19 @@ class MongoDBInterface:
                         {"$set": object}
                     )
                     rospy.loginfo("Updated object confidence in database.")
+                self.publish_detect_ugv(msg, namespace, object["status"])
                 return
 
         self.collection.insert_one(object)
+        self.publish_detect_ugv(msg, namespace, object["status"])
         rospy.loginfo("New object added to database from detect_object message.")
 
+    def publish_detect_ugv(self, msg: DetectObject, namespace: str, status: str):
+        msg.status = status
+        ugv_pub = rospy.Publisher(f"/{namespace}/detect_object_ugv", DetectObject, queue_size=10)
+        ugv_pub.publish(msg)
 
 if __name__ == "__main__":
     rospy.init_node("ros_mongodb")
     mongodb_interface = MongoDBInterface()
-
-    rospy.Service("/update_data", UpdateDatabase, mongodb_interface.update_data)
-    rospy.Service("/query_loc", QueryObjectLocations, mongodb_interface.query_loc)
-    rospy.Service("/getObjectPose", GetObjectPose, mongodb_interface.get_object_pose)
-    rospy.Service("/clustering", ClusterAndSample, mongodb_interface.clustering)
-
-    num_robots = rospy.get_param("~no_of_robots", 1)
-    for i in range(1, num_robots + 1):
-        rospy.Subscriber(f"/ugv{i}/detect_object", DetectObject, mongodb_interface.detect_object_callback, callback_args=f"ugv{i}")
-
-    rospy.loginfo("MongoDB ROS node is up and running for {num_robots}.")
     rospy.spin()
