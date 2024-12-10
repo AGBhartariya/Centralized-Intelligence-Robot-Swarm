@@ -137,7 +137,7 @@ class RobotStateNode:
         distance =  (pose.pose.position.x - self.current_object_pose.pose.position.x) ** 2 + \
                     (pose.pose.position.y - self.current_object_pose.pose.position.y) ** 2 + \
                     (pose.pose.position.z - self.current_object_pose.pose.position.z) ** 2
-        if distance < rospy.get_param("/tolerance", 0.1):
+        if distance < rospy.get_param("/pose_database_node/tolerance", 0.1):
             return True
         return False
     
