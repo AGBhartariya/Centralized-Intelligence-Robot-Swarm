@@ -115,7 +115,7 @@ class RobotStateManager:
         try:
             clusters = rospy.ServiceProxy('clustering', ClusterAndSample)
             request = ClusterAndSampleRequest()
-            request.num_points_per_cluster = num_points
+            request.num_points = num_points
             response = clusters(request)
             return response.points
         except:
