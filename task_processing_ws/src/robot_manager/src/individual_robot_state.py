@@ -134,9 +134,9 @@ class RobotStateNode:
     def check_occupied(self, pose: PoseStamped, status: str):
         if status == "free":
             return True
-        distance =  (pose.pose.position.x - self.current_object_pose.pose.position.x) ** 2 + \
-                    (pose.pose.position.y - self.current_object_pose.pose.position.y) ** 2 + \
-                    (pose.pose.position.z - self.current_object_pose.pose.position.z) ** 2
+        distance = math.sqrt((pose.pose.position.x - self.current_object_pose.pose.position.x)**2 +
+                             (pose.pose.position.y - self.current_object_pose.pose.position.y)**2 +
+                             (pose.pose.position.z - self.current_object_pose.pose.position.z)**2)
         if distance < rospy.get_param("/pose_database_node/tolerance", 0.1):
             return True
         return False
