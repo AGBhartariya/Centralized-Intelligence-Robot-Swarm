@@ -103,7 +103,7 @@ class MongoDBInterface:
                 return GetObjectPoseResponse(pose)
 
         rospy.loginfo("No matching object found for get_object_pose.")
-        return GetObjectPoseResponse()
+        return GetObjectPoseResponse(req.robot_location)
 
     def clustering(self, req: ClusterAndSampleRequest):
         rospy.loginfo("Received clustering request.")

@@ -220,7 +220,7 @@ class RobotStateNode:
         # Failed to reach the loction or find object, aborting task
         if state == 0:
             self.update_database(
-                self.current_object, self.current_object_pose, "free"
+                self.current_object, self.current_object_pose, "free", flag=False
             )
             self.abort_task(
                 f"Failed to reach location {self.current_object_location} or find object {self.current_object}."
@@ -283,7 +283,7 @@ class RobotStateNode:
                 f"Failed to reach location {location_1} to interact with {self.current_object}."
             )
             self.update_database(
-                self.current_object, self.current_object_pose, "free"
+                self.current_object, self.current_object_pose, "free", flag=False
             )
             self.cleanup_after_task()
             return
@@ -309,7 +309,7 @@ class RobotStateNode:
                 f"Failed to reach location {location_1} to pick up {self.current_object}."
             )
             self.update_database(
-                self.current_object, self.current_object_pose, "free"
+                self.current_object, self.current_object_pose, "free", flag=False
             )
             self.cleanup_after_task()
             return
@@ -371,7 +371,7 @@ class RobotStateNode:
         # Failed to reach the loction or find object, aborting task
         if state == 0:
             self.update_database(
-                self.current_object, self.current_object_pose, "free"
+                self.current_object, self.current_object_pose, "free", flag=False
             )
             self.abort_task(
                 f"Failed to reach location {self.current_object_location} or find object {self.current_object}."
