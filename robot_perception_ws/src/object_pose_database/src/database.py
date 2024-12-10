@@ -157,6 +157,7 @@ class MongoDBInterface:
             obj_pose.pose.position.z = obj["object_pose"]["z"]
             if self.euclidean_distance(obj_pose.pose, msg.pose.pose) < self.tolerance:
                 if msg.confidence > obj["confidence"]:
+                    object["status"] = obj["status"]
                     self.collection.update_one(
                         {"_id": obj["_id"]},
                         {"$set": object}
