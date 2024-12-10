@@ -17,7 +17,7 @@ class MongoDBInterface:
         self.collection_name = rospy.get_param("~collection_name", "object")
         self.epsilon = rospy.get_param("~epsilon", 0.5)
         # Initialize MongoDB connection
-        self.client = pymongo.MongoClient("mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment")
+        self.client = pymongo.MongoClient("mongodb+srv://all:simpledb@environment.wfwxr.mongodb.net/?retryWrites=true&w=majority&appName=Environment") # Aditya's Database
         self.db = self.client[self.database_name]
         self.collection = self.db[self.collection_name]
 
