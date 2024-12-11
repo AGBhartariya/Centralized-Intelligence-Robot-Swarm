@@ -186,7 +186,7 @@ def assign_tasks():
                 request.objectType=data[1]
                 object_locations = object_locations_client(request).locations
 
-                rospy.loginfo(f"Found object {data[1]} at {object_locations}")
+                rospy.loginfo(f"Found {len(object_locations)} object {data[1]} at {object_locations}")
                 # Calculate costs for each robot
                 for j, robot_id in enumerate(free_robot_ids):
                     task_cost_client = rospy.ServiceProxy(
@@ -245,7 +245,7 @@ def generateTaskMsg(task: Task, assigned_location: PoseStamped) -> Task:
     elif task.description[0] == 3:
         pass
     elif task.description[0] == 4:
-        task.location[0] = assigned_location
+        task.locations[0] = assigned_location
     elif task.description[0] == 5:
         pass
     return task
